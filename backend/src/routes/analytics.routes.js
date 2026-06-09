@@ -4,10 +4,10 @@ const { auth, authorize } = require("../middleware");
 
 const router = express.Router();
 
-/**
- * Get analytics data (Admin only)
- * GET /api/v1/analytics/
- */
+// Get all analytics (admin only)
 router.get("/", auth, authorize("admin"), urlCtrl.getAnalytics);
+
+// Get stats for a specific URL
+router.get("/:id/stats", auth, urlCtrl.getStats);
 
 module.exports = router;

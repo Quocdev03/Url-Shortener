@@ -1,290 +1,267 @@
 const urlService = require("../services/url.service");
-const { asyncHandler } = require("../middleware/asyncHandler");
+const analyticsService = require("../services/analytics.service");
 const { logger } = require("../utils/logger");
+const {
+	formatCreateUrlResponse,
+	formatListUrlsResponse,
+	formatGetUrlResponse,
+	formatUpdateUrlResponse,
+	formatDeleteUrlResponse,
+	formatStatsResponse,
+	formatAnalyticsResponse,
+} = require("../utils/response.formatter");
+
+const createUrlPublic = async (req, res, next) => {
+	try {
+		const { originalUrl } = req.body;
+
+		const url = await urlService.createShortUrlPublic({
+			originalUrl,
+		});
+
+		const baseUrl =
+			process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+
+		const response = formatCreateUrlResponse(
+			url,
+			baseUrl,
+			"URL created successfully (temporary, not saved)",
+			201,
+		);
+
+		res.status(response.statusCode).json(response.body);
+	} catch (error) {
+		next(error);
+	}
+};
 
 /**
- * URL Controller
- * Handles URL shortening, management, redirection, and analytics
+ * Tạo short URL cho người dùng đã xác thực
+ * URL sẽ được lưu vào database vĩnh viễn
+ * Hỗ trợ custom alias và expiration date
  */
+const createUrlAuth = async (req, res, next) => {
+	try {
+		const { originalUrl, customAlias, expiresAt } = req.body;
+		const userId = req.user.userId;
 
-/**
- * Create a new shortened URL
- * POST /api/v1/urls
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- */
-const createUrl = asyncHandler(async (req, res) => {
-	const { originalUrl, customAlias, expiresAt } = req.body;
-	const userId = req.user?.userId || null;
-
-	const url = await urlService.createShortUrl({
-		originalUrl,
-		customAlias,
-		expiresAt,
-		userId,
-	});
-
-	const baseUrl =
-		process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
-
-	res.status(201).json({
-		success: true,
-		message: "URL created successfully",
-		data: {
-			id: url.id,
-			code: url.code,
-			shortUrl: `${baseUrl}/${url.code}`,
-			originalUrl: url.original,
-			customAlias: url.customAlias,
-			expiresAt: url.expiresAt,
-			createdAt: url.createdAt,
-			userId: url.userId,
-		},
-	});
-});
-
-/**
- * List URLs with pagination, search, and filtering
- * GET /api/v1/urls
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- */
-const listUrls = asyncHandler(async (req, res) => {
-	const { page, limit, search, sortBy, order, expired } = req.query;
-	const isAdmin = req.user.role === "admin";
-
-	const urlList = await urlService.listUrls({
-		userId: req.user.userId,
-		isAdmin,
-		page: Number(page) || 1,
-		limit: Number(limit) || 20,
-		search,
-		sortBy,
-		order,
-		expired,
-	});
-
-	const baseUrl =
-		process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
-
-	const formattedItems = urlList.items.map((url) => ({
-		id: url.id,
-		code: url.code,
-		shortUrl: `${baseUrl}/${url.code}`,
-		originalUrl: url.original,
-		customAlias: url.customAlias,
-		expiresAt: url.expiresAt,
-		createdAt: url.createdAt,
-		userId: url.userId,
-	}));
-
-	res.json({
-		success: true,
-		message: "URLs retrieved successfully",
-		data: formattedItems,
-		meta: urlList.meta,
-	});
-});
-
-/**
- * Get URL details by ID
- * GET /api/v1/urls/:id
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- */
-const getUrl = asyncHandler(async (req, res) => {
-	const { id } = req.params;
-
-	const url = await urlService.getUrlById(
-		Number(id),
-		req.user.userId,
-		req.user.role === "admin",
-	);
-
-	const baseUrl =
-		process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
-
-	res.json({
-		success: true,
-		message: "URL retrieved successfully",
-		data: {
-			id: url.id,
-			code: url.code,
-			shortUrl: `${baseUrl}/${url.code}`,
-			originalUrl: url.original,
-			customAlias: url.customAlias,
-			expiresAt: url.expiresAt,
-			createdAt: url.createdAt,
-			userId: url.userId,
-		},
-	});
-});
-
-/**
- * Update URL information
- * PATCH /api/v1/urls/:id
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- */
-const updateUrl = asyncHandler(async (req, res) => {
-	const { id } = req.params;
-	const { originalUrl, customAlias, expiresAt } = req.body;
-
-	const url = await urlService.updateUrl(
-		Number(id),
-		{
+		const url = await urlService.createShortUrl({
 			originalUrl,
 			customAlias,
 			expiresAt,
-		},
-		req.user.userId,
-		req.user.role === "admin",
-	);
-
-	const baseUrl =
-		process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
-
-	res.json({
-		success: true,
-		message: "URL updated successfully",
-		data: {
-			id: url.id,
-			code: url.code,
-			shortUrl: `${baseUrl}/${url.code}`,
-			originalUrl: url.original,
-			customAlias: url.customAlias,
-			expiresAt: url.expiresAt,
-			createdAt: url.createdAt,
-			userId: url.userId,
-		},
-	});
-});
-
-/**
- * Delete URL by ID
- * DELETE /api/v1/urls/:id
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- */
-const deleteUrl = asyncHandler(async (req, res) => {
-	const { id } = req.params;
-
-	await urlService.deleteUrl(
-		Number(id),
-		req.user.userId,
-		req.user.role === "admin",
-	);
-
-	res.json({
-		success: true,
-		message: "URL deleted successfully",
-		data: {},
-	});
-});
-
-/**
- * Get URL analytics and click statistics
- * GET /api/v1/urls/:id/stats
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- */
-const getStats = asyncHandler(async (req, res) => {
-	const { id } = req.params;
-
-	const stats = await urlService.getStats(
-		Number(id),
-		req.user.userId,
-		req.user.role === "admin",
-	);
-
-	const baseUrl =
-		process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
-
-	res.json({
-		success: true,
-		message: "URL stats retrieved successfully",
-		data: {
-			id: stats.url.id,
-			code: stats.url.code,
-			shortUrl: `${baseUrl}/${stats.url.code}`,
-			originalUrl: stats.url.original,
-			customAlias: stats.url.customAlias,
-			expiresAt: stats.url.expiresAt,
-			createdAt: stats.url.createdAt,
-			analytics: {
-				totalClicks: stats.totalClicks,
-				cacheClicks: stats.cacheClicks,
-				recentClicks: stats.recentClicks,
-			},
-		},
-	});
-});
-
-/**
- * Redirect from short code to original URL and track click
- * GET /:code
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- */
-const redirect = asyncHandler(async (req, res) => {
-	const { code } = req.params;
-	const original = await urlService.resolveCode(code);
-
-	if (!original) {
-		return res.status(404).json({
-			success: false,
-			message: "URL not found or expired",
-			errors: [],
+			userId,
 		});
+
+		const baseUrl =
+			process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+
+		const response = formatCreateUrlResponse(
+			url,
+			baseUrl,
+			"URL created successfully",
+			201,
+		);
+
+		res.status(response.statusCode).json(response.body);
+	} catch (error) {
+		next(error);
 	}
+};
 
-	// Record click analytics asynchronously
-	urlService
-		.recordClick(code, {
-			ip: req.ip,
-			userAgent: req.get("User-Agent"),
-			referer: req.get("Referer"),
-		})
-		.catch((err) => {
-			logger.error(`Click recording failed for code=${code}`, err);
+const listUrls = async (req, res, next) => {
+	try {
+		const { page, limit, search, sortBy, order, expired } = req.query;
+		const isAdmin = req.user.role === "admin";
+
+		const urlList = await urlService.listUrls({
+			userId: req.user.userId,
+			isAdmin,
+			page: Number(page) || 1,
+			limit: Number(limit) || 20,
+			search,
+			sortBy,
+			order,
+			expired,
 		});
 
-	return res.redirect(302, original);
-});
+		const baseUrl =
+			process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+
+		const response = formatListUrlsResponse(
+			urlList.items,
+			urlList.meta,
+			baseUrl,
+		);
+
+		res.json(response.body);
+	} catch (error) {
+		next(error);
+	}
+};
 
 /**
- * Get analytics data (Admin only)
- * GET /api/v1/analytics
- * @param {import('express').Request} req
- * @param {import('express').Response} res
+ * Lấy chi tiết một URL
+ * Kiểm tra quyền truy cập
  */
-const getAnalytics = asyncHandler(async (req, res) => {
-	const { page, limit, search, sortBy, order, urlId } = req.query;
+const getUrl = async (req, res, next) => {
+	try {
+		const { id } = req.params;
 
-	const analytics = await urlService.getAnalytics({
-		page: Number(page) || 1,
-		limit: Number(limit) || 20,
-		search,
-		sortBy,
-		order,
-		urlId: urlId ? Number(urlId) : undefined,
-	});
+		const url = await urlService.getUrlById(
+			Number(id),
+			req.user.userId,
+			req.user.role === "admin",
+		);
 
-	res.json({
-		success: true,
-		message: "Analytics retrieved successfully",
-		data: analytics.items,
-		meta: analytics.meta,
-	});
-});
+		const baseUrl =
+			process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+
+		const response = formatGetUrlResponse(url, baseUrl);
+
+		res.json(response.body);
+	} catch (error) {
+		next(error);
+	}
+};
+
+/**
+ * Cập nhật URL
+ * Chỉ có thể cập nhật originalUrl và expiresAt
+ * customAlias không được phép cập nhật
+ */
+const updateUrl = async (req, res, next) => {
+	try {
+		const { id } = req.params;
+		const { originalUrl, customAlias, expiresAt } = req.body;
+
+		const url = await urlService.updateUrl(
+			Number(id),
+			{
+				originalUrl,
+				customAlias,
+				expiresAt,
+			},
+			req.user.userId,
+			req.user.role === "admin",
+		);
+
+		const baseUrl =
+			process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+
+		const response = formatUpdateUrlResponse(url, baseUrl);
+
+		res.json(response.body);
+	} catch (error) {
+		next(error);
+	}
+};
+
+const deleteUrl = async (req, res, next) => {
+	try {
+		const { id } = req.params;
+
+		await urlService.deleteUrl(
+			Number(id),
+			req.user.userId,
+			req.user.role === "admin",
+		);
+
+		const response = formatDeleteUrlResponse();
+
+		res.json(response.body);
+	} catch (error) {
+		next(error);
+	}
+};
+
+const getStats = async (req, res, next) => {
+	try {
+		const { id } = req.params;
+
+		const stats = await analyticsService.getStats(
+			Number(id),
+			req.user.userId,
+			req.user.role === "admin",
+		);
+
+		const baseUrl =
+			process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+
+		const response = formatStatsResponse(stats, baseUrl);
+
+		res.json(response.body);
+	} catch (error) {
+		next(error);
+	}
+};
+
+/**
+ * Lấy danh sách analytics (click records)
+ * Hỗ trợ lọc theo URL, tìm kiếm, sắp xếp, phân trang
+ */
+const getAnalytics = async (req, res, next) => {
+	try {
+		const { page, limit, search, sortBy, order, urlId } = req.query;
+
+		const analytics = await analyticsService.getAnalytics({
+			page: Number(page) || 1,
+			limit: Number(limit) || 20,
+			search,
+			sortBy,
+			order,
+			urlId: urlId ? Number(urlId) : undefined,
+		});
+
+		const response = formatAnalyticsResponse(analytics.items, analytics.meta);
+
+		res.json(response.body);
+	} catch (error) {
+		next(error);
+	}
+};
+
+const redirect = async (req, res, next) => {
+	try {
+		const { code } = req.params;
+		const original = await urlService.resolveCode(code);
+
+		if (!original) {
+			return res.status(404).json({
+				success: false,
+				message: "URL not found or expired",
+				errors: [],
+			});
+		}
+
+		// Ghi nhận click nhưng không chặn response nếu ghi nhận thất bại
+		analyticsService
+			.recordClick(code, {
+				ip: req.ip,
+				userAgent: req.get("User-Agent"),
+				referer: req.get("Referer"),
+			})
+			.catch((err) => {
+				logger.error(`Click recording failed for code=${code}`, err);
+			});
+
+		return res.redirect(302, original);
+	} catch (error) {
+		next(error);
+	}
+};
 
 module.exports = {
-	createUrl,
+	// Creation
+	createUrlPublic,
+	createUrlAuth,
+	// Management
 	listUrls,
 	getUrl,
 	updateUrl,
 	deleteUrl,
+	// Analytics
 	getStats,
 	getAnalytics,
+	// Redirect
 	redirect,
 };

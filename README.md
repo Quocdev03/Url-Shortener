@@ -54,7 +54,6 @@ url-shortener/
 │   ├── database/
 │   │   ├── init.js
 │   │   ├── schema.sql
-│   │   └── seed.js
 │   ├── middleware/
 │   │   ├── asyncHandler.js
 │   │   └── index.js
@@ -464,7 +463,6 @@ docker compose exec redis redis-cli ping
 
 ```bash
 docker compose exec mysql mysql -u root -psecret urlshortener -e "SELECT email FROM users"
-docker compose exec app npm run seed   # re-seed nếu cần
 ```
 
 ---
@@ -497,10 +495,13 @@ docker compose exec redis redis-cli
 ```bash
 # Trong container
 docker compose exec app npm run dev    # Watch mode
-docker compose exec app npm run seed   # Seed dữ liệu
 
 # Local (Node 20+)
 npm run dev    # nodemon watch
-npm run seed   # seed dữ liệu
 npm start      # production
 ```
+
+### Fix
+
+net stop winnat
+net start winnat

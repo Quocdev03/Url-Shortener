@@ -13,7 +13,7 @@ const { initializeDatabase } = require("./database/init");
 const authRoutes = require("./routes/auth.routes");
 const urlRoutes = require("./routes/url.routes");
 const analyticsRoutes = require("./routes/analytics.routes");
-const urlController = require("./controllers/url.controller");
+const { redirect } = require("./controllers/url.controller");
 
 const app = express();
 const PORT = process.env.PORT ?? 3000;
@@ -24,6 +24,9 @@ app.use((req, res, next) => {
 	res.setHeader(HEADERS.REQUEST_ID, req.requestId);
 	next();
 });
+
+// Enable trust proxy để Express lấy đúng IP khi behind proxy (Docker, nginx)
+app.set("trust proxy", 1);
 
 app.use(cors());
 
@@ -59,14 +62,14 @@ app.get("/health", (req, res) => {
 // Auth APIs
 app.use("/api/v1/auth", authRoutes);
 
-// URL management APIs
+// URL APIs
 app.use("/api/v1/urls", urlRoutes);
 
 // Analytics APIs
 app.use("/api/v1/analytics", analyticsRoutes);
 
 // Redirect từ short code sang URL gốc
-app.get("/:code", urlController.redirect);
+app.get("/:code", redirect);
 
 // Fallback cho các route không tồn tại
 app.use((req, res, next) => {
@@ -81,17 +84,6 @@ app.listen(PORT, async () => {
 	logger.success(`Server is running on port ${PORT}`, {
 		environment: process.env.NODE_ENV ?? "development",
 	});
-
-	// Ensure Redis connects at startup (config uses lazyConnect)
-	try {
-		const { redis } = require("./config/config");
-		if (redis && typeof redis.connect === "function") {
-			await redis.connect();
-			logger.success("Redis connected (established by app startup)");
-		}
-	} catch (err) {
-		logger.error("Redis connection failed at startup", err);
-	}
 
 	await initializeDatabase();
 });
@@ -109,6 +101,7 @@ process.on("unhandledRejection", (reason) => {
 		"Unhandled rejection",
 		new Error(`Promise rejected: ${reason}`),
 	);
+	process.exit(1);
 });
 
 module.exports = app;

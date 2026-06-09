@@ -7,15 +7,23 @@ const unauthenticated = ref(true);
 <template>
 	<header class="header-main">
 		<div class="header-logo">
-			<img :src="logo" alt="" />
+			<router-link to="/">
+				<img :src="logo" alt="" />
+			</router-link>
 		</div>
 		<div class="header-auth">
 			<div v-if="unauthenticated == true" class="header-unauthenticated">
-				<button class="btn btn-primary">Login</button>
-				<button class="btn btn-outline">Sign Up</button>
+				<router-link to="/login" class="btn btn-primary"
+					>Login</router-link
+				>
+				<router-link to="/register" class="btn btn-outline"
+					>Sign Up</router-link
+				>
 			</div>
 			<div v-else class="header-unauthorized">
-				<button class="btn btn-outline">Logout</button>
+				<router-link to="/logout" class="btn btn-outline"
+					>Logout</router-link
+				>
 				<div class="header-unauthorized-avt">
 					<img :srcset="`${avatar} 2x`" alt="" />
 				</div>
@@ -40,8 +48,6 @@ const unauthenticated = ref(true);
 	z-index: 10;
 	border-bottom: 1px solid #dadee0;
 }
-.header-logo {
-}
 .header-auth {
 	display: flex;
 	justify-content: center;
@@ -52,6 +58,12 @@ const unauthenticated = ref(true);
 	justify-content: center;
 	align-items: center;
 	gap: 10px;
+}
+.header-unauthenticated > * {
+	text-decoration: none;
+}
+.header-unauthorized > * {
+	text-decoration: none;
 }
 .header-unauthorized {
 	display: flex;

@@ -32,7 +32,6 @@ button {
 	border: 0;
 }
 body {
-	min-height: 100vh;
 	font-family: "Manrope", sans-serif;
 	font-weight: 400;
 	font-size: 16px;
@@ -42,11 +41,8 @@ body {
 	max-width: 100%;
 	margin-left: auto;
 	margin-right: auto;
-	padding-top: 140px;
-	padding-left: 15px;
-	padding-right: 15px;
+	padding: 100px 15px;
 	background-color: var(--primary-bg);
-	height: 1000px;
 }
 .btn {
 	display: block;
@@ -65,7 +61,7 @@ body {
 }
 
 .btn-primary {
-	background: linear-gradient(135deg, #00c0fa 0%, #1a80e5 50%, #4261ed 100%);
+	background: linear-gradient(135deg, #00b3fa 0%, #1a80e5 50%, #4261ed 100%);
 	color: #f7fafc;
 	box-shadow: 0 2px 8px rgba(26, 128, 230, 0.35);
 }

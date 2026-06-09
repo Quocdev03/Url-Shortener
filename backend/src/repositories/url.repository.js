@@ -1,10 +1,14 @@
 const { db } = require("../config/config");
 
 async function createUrl({ userId, original, code, customAlias, expiresAt }) {
+	// INSERT vào database với parameters (SQLi-safe)
+	// Nếu không có userId/customAlias/expiresAt → NULL trong DB
 	const [result] = await db.query(
 		"INSERT INTO urls (user_id, original, code, custom_alias, expires_at) VALUES (?, ?, ?, ?, ?)",
 		[userId || null, original, code, customAlias || null, expiresAt || null],
 	);
+
+	// Return object với insertId từ DB
 	return {
 		id: result.insertId,
 		userId: userId || null,
@@ -17,14 +21,18 @@ async function createUrl({ userId, original, code, customAlias, expiresAt }) {
 }
 
 async function findUrlByCode(code) {
+	// Query URL by short code (exact match)
+	// SELECT statement converts snake_case → camelCase (u.d AS userId)
 	const [rows] = await db.query(
 		"SELECT id, user_id AS userId, original, code, custom_alias AS customAlias, expires_at AS expiresAt, created_at AS createdAt FROM urls WHERE code = ?",
 		[code],
 	);
+	// Return first row hay null nếu không tìm thấy
 	return rows[0] || null;
 }
 
 async function findUrlById(id) {
+	// Query URL by ID (PK lookup)
 	const [rows] = await db.query(
 		"SELECT id, user_id AS userId, original, code, custom_alias AS customAlias, expires_at AS expiresAt, created_at AS createdAt FROM urls WHERE id = ?",
 		[id],
@@ -33,14 +41,18 @@ async function findUrlById(id) {
 }
 
 async function isCodeTaken(code) {
+	// Check nếu code đã tồn tại (SELECT only id for efficiency)
+	// Return true nếu có records, false nếu không
 	const [rows] = await db.query("SELECT id FROM urls WHERE code = ?", [code]);
 	return rows.length > 0;
 }
 
 async function updateUrl(id, fields) {
-	const updates = [];
-	const values = [];
+	// Xây dựng dynamic UPDATE clause dựa trên fields có
+	const updates = []; // SQL SET clauses (original = ?, ...)
+	const values = []; // Parameterized values
 
+	// Chỉ thêm field nào nào có giá trị
 	if (fields.original) {
 		updates.push("original = ?");
 		values.push(fields.original);
@@ -54,31 +66,44 @@ async function updateUrl(id, fields) {
 		values.push(fields.expiresAt);
 	}
 
+	// Nếu không có field nào update → return null
 	if (!updates.length) return null;
+
+	// Thêm id đến cuối cho WHERE clause
 	values.push(id);
 
+	// Execute UPDATE với dynamic SET clause
 	await db.query(`UPDATE urls SET ${updates.join(", ")} WHERE id = ?`, values);
+
+	// Return updated record
 	return findUrlById(id);
 }
 
 async function deleteUrl(id) {
+	// Xóa URL by ID
 	await db.query("DELETE FROM urls WHERE id = ?", [id]);
 }
 
 async function countUrlsByQuery({ userId, search, filterExpired }) {
-	const conditions = [];
-	const values = [];
+	// Xây dựng dynamic WHERE clause dựa trên filters
+	const conditions = []; // SQL conditions
+	const values = []; // Parameterized values
 
+	// Filter 1: User ownership (undefined = all, specific userId = only that user)
 	if (userId !== undefined) {
 		conditions.push("user_id = ?");
 		values.push(userId);
 	}
+
+	// Filter 2: Text search trong 3 fields
 	if (search) {
 		conditions.push(
 			"(original LIKE ? OR code LIKE ? OR custom_alias LIKE ?)",
 		);
 		values.push(`%${search}%`, `%${search}%`, `%${search}%`);
 	}
+
+	// Filter 3: Expiration status
 	if (filterExpired === true) {
 		conditions.push("expires_at IS NOT NULL AND expires_at < NOW()");
 	}
@@ -86,7 +111,10 @@ async function countUrlsByQuery({ userId, search, filterExpired }) {
 		conditions.push("(expires_at IS NULL OR expires_at > NOW())");
 	}
 
+	// Build WHERE clause
 	const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+
+	// COUNT query
 	const [rows] = await db.query(
 		`SELECT COUNT(*) AS total FROM urls ${where}`,
 		values,
@@ -103,138 +131,64 @@ async function findUrlsByQuery({
 	offset = 0,
 	limit = 20,
 }) {
-	const conditions = [];
-	const values = [];
+	// Khởi tạo arrays để xây dựng WHERE clause động
+	const conditions = []; // SQL conditions (WHERE clauses)
+	const values = []; // Parameterized query values (ngăn SQL injection)
 
+	// === FILTER 1: User ownership ===
+	// Nếu userId cung cấp → chỉ lấy URLs của user này (undefined = admin, lấy all)
 	if (userId !== undefined) {
 		conditions.push("user_id = ?");
 		values.push(userId);
 	}
+
+	// === FILTER 2: Text search ===
+	// Search trong 3 fields: original_url, code, custom_alias
+	// Sử dụng LIKE wildcard (%search%) để match partial strings
 	if (search) {
 		conditions.push(
 			"(original LIKE ? OR code LIKE ? OR custom_alias LIKE ?)",
 		);
+		// Thêm 3 giá trị: search với wildcard cho mỗi field
 		values.push(`%${search}%`, `%${search}%`, `%${search}%`);
 	}
+
+	// === FILTER 3: Expiration status ===
+	// filterExpired = true  → chỉ expired URLs (expires_at < NOW)
+	// filterExpired = false → chỉ active URLs (expires_at IS NULL hoặc > NOW)
+	// filterExpired = undefined → ignore filter (lấy all)
 	if (filterExpired === true) {
+		// URL expired khi: có expiration date AND date đó < hiện tại
 		conditions.push("expires_at IS NOT NULL AND expires_at < NOW()");
 	}
 	if (filterExpired === false) {
+		// URL active khi: không có expiration date HOẶC date > hiện tại
 		conditions.push("(expires_at IS NULL OR expires_at > NOW())");
 	}
 
+	// === SORTING (SQL Injection prevention) ===
+	// Whitelist các fields cho phép sort (ngăn user injection malicious SQL)
 	const sortableFields = ["created_at", "expires_at", "code", "original"];
+	// Normalize order: ASC hoặc DESC (mặc định DESC = newest first)
 	const direction = order.toUpperCase() === "ASC" ? "ASC" : "DESC";
+	// Nếu sortBy không trong whitelist → default created_at
 	const safeSortBy = sortableFields.includes(sortBy) ? sortBy : "created_at";
 
+	// === BUILD SQL QUERY ===
+	// Nếu có conditions → WHERE clause, nếu không → query all
 	const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+
+	// SQL query với parameterized placeholders (?) để bảo vệ injection
+	// AS clauses để convert snake_case từ DB → camelCase cho API
 	const query = `SELECT id, user_id AS userId, original, code, custom_alias AS customAlias, expires_at AS expiresAt, created_at AS createdAt
     FROM urls ${where}
     ORDER BY ${safeSortBy} ${direction}
     LIMIT ? OFFSET ?`;
 
+	// Thêm LIMIT + OFFSET cho pagination vào values array
 	values.push(limit, offset);
-	const [rows] = await db.query(query, values);
-	return rows;
-}
 
-async function recordClick({ urlId, ip, userAgent, referer }) {
-	await db.query(
-		"INSERT INTO analytics (url_id, ip, user_agent, referer) VALUES (?, ?, ?, ?)",
-		[urlId, ip || null, userAgent || null, referer || null],
-	);
-}
-
-async function getUrlAnalytics(urlId, limit = 10) {
-	const [countRows] = await db.query(
-		"SELECT COUNT(*) AS total FROM analytics WHERE url_id = ?",
-		[urlId],
-	);
-	const [recent] = await db.query(
-		"SELECT ip, user_agent AS userAgent, referer, clicked_at AS clickedAt FROM analytics WHERE url_id = ? ORDER BY clicked_at DESC LIMIT ?",
-		[urlId, limit],
-	);
-	return { total: countRows[0]?.total || 0, recent };
-}
-
-/**
- * Count analytics records by query
- * @param {Object} params
- * @returns {Promise<number>} Total count
- */
-async function countAnalyticsByQuery({ search, urlId }) {
-	const conditions = [];
-	const values = [];
-
-	if (urlId !== undefined) {
-		conditions.push("a.url_id = ?");
-		values.push(urlId);
-	}
-
-	if (search) {
-		conditions.push("(u.original LIKE ? OR u.code LIKE ? OR a.ip LIKE ?)");
-		values.push(`%${search}%`, `%${search}%`, `%${search}%`);
-	}
-
-	const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
-	const [rows] = await db.query(
-		`SELECT COUNT(*) AS total FROM analytics a
-		 LEFT JOIN urls u ON a.url_id = u.id ${where}`,
-		values,
-	);
-
-	return rows[0]?.total || 0;
-}
-
-/**
- * Get all analytics with pagination and filtering
- * @param {Object} params
- * @returns {Promise<Array>} Analytics records
- */
-async function getAllAnalytics({
-	search,
-	urlId,
-	sortBy = "clicked_at",
-	order = "DESC",
-	offset = 0,
-	limit = 20,
-}) {
-	const conditions = [];
-	const values = [];
-
-	if (urlId !== undefined) {
-		conditions.push("a.url_id = ?");
-		values.push(urlId);
-	}
-
-	if (search) {
-		conditions.push("(u.original LIKE ? OR u.code LIKE ? OR a.ip LIKE ?)");
-		values.push(`%${search}%`, `%${search}%`, `%${search}%`);
-	}
-
-	const sortableFields = ["clicked_at", "ip", "url_id"];
-	const direction = order.toUpperCase() === "ASC" ? "ASC" : "DESC";
-	const safeSortBy = sortableFields.includes(sortBy) ? sortBy : "clicked_at";
-
-	const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
-	const query = `
-		SELECT 
-			a.id,
-			a.url_id AS urlId,
-			u.code,
-			u.original AS originalUrl,
-			a.ip,
-			a.user_agent AS userAgent,
-			a.referer,
-			a.clicked_at AS clickedAt
-		FROM analytics a
-		LEFT JOIN urls u ON a.url_id = u.id
-		${where}
-		ORDER BY a.${safeSortBy} ${direction}
-		LIMIT ? OFFSET ?
-	`;
-
-	values.push(limit, offset);
+	// Execute query với all parameterized values (SQLi-safe)
 	const [rows] = await db.query(query, values);
 	return rows;
 }
@@ -248,8 +202,4 @@ module.exports = {
 	deleteUrl,
 	countUrlsByQuery,
 	findUrlsByQuery,
-	recordClick,
-	getUrlAnalytics,
-	countAnalyticsByQuery,
-	getAllAnalytics,
 };

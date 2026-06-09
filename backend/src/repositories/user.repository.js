@@ -1,18 +1,8 @@
-/**
- * User Repository
- * Database access layer for user operations
- */
-
 const { db } = require("../config/config");
 const { ROLES } = require("../config/constants");
 
 const { USER } = ROLES;
 
-/**
- * Find user by email address
- * @param {string} email
- * @returns {Promise<Object|null>}
- */
 async function findUserByEmail(email) {
 	const [rows] = await db.query(
 		`
@@ -30,11 +20,6 @@ async function findUserByEmail(email) {
 	return rows[0] || null;
 }
 
-/**
- * Find user by ID (without password)
- * @param {number} id
- * @returns {Promise<Object|null>}
- */
 async function findUserById(id) {
 	const [rows] = await db.query(
 		`
@@ -52,11 +37,6 @@ async function findUserById(id) {
 	return rows[0] || null;
 }
 
-/**
- * Find user by ID with password hash
- * @param {number} id
- * @returns {Promise<Object|null>}
- */
 async function findUserWithPasswordById(id) {
 	const [rows] = await db.query(
 		`
@@ -74,12 +54,6 @@ async function findUserWithPasswordById(id) {
 	return rows[0] || null;
 }
 
-/**
- * Create new user
- * @param {string} email
- * @param {string} passwordHash
- * @returns {Promise<Object>}
- */
 async function createUser(email, passwordHash) {
 	const [result] = await db.query(
 		`
@@ -100,12 +74,6 @@ async function createUser(email, passwordHash) {
 	};
 }
 
-/**
- * Update user password by ID
- * @param {number} userId
- * @param {string} passwordHash
- * @returns {Promise<void>}
- */
 async function updateUserPassword(userId, passwordHash) {
 	await db.query(
 		`

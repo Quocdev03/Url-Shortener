@@ -30,10 +30,6 @@ const SALT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS) || 12;
 
 const PEPPER = process.env.PASSWORD_PEPPER || "";
 
-/* ================================
-   PASSWORD
-================================ */
-
 function hashPassword(password) {
 	return bcrypt.hash(password + PEPPER, SALT_ROUNDS);
 }
@@ -41,10 +37,6 @@ function hashPassword(password) {
 function verifyPassword(password, hash) {
 	return bcrypt.compare(password + PEPPER, hash);
 }
-
-/* ================================
-   TOKEN
-================================ */
 
 function parseExpiration(value) {
 	const match = String(value).match(/^(\d+)([smhd])$/);
@@ -96,10 +88,6 @@ function createRefreshToken(userId, tokenId) {
 	);
 }
 
-/* ================================
-   REDIS
-================================ */
-
 async function saveRefreshToken(tokenId, userId) {
 	const tokenKey = `${REDIS_KEYS.REFRESH_TOKEN}${tokenId}`;
 
@@ -121,28 +109,33 @@ async function revokeRefreshToken(tokenId, userId) {
 }
 
 async function revokeAllRefreshTokens(userId) {
+	// Redis set key lưu tất cả refresh tokenIds của user (format: "user_refresh_set:${userId}")
 	const setKey = `${REDIS_KEYS.USER_REFRESH_SET}${userId}`;
 
+	// Lấy tất cả tokenIds từ Redis set (O(N) complexity)
 	const tokenIds = await redis.smembers(setKey);
 
+	// Early exit nếu user không có token nào
 	if (!tokenIds.length) {
 		return;
 	}
 
+	// Khởi tạo Redis pipeline (batch multiple commands → 1 RTT)
+	// Thay vì gửi N+1 commands riêng biệt, gửi all commands cùng lúc
 	const pipeline = redis.multi();
 
+	// Loop qua tất cả tokenIds và xóa từng token khỏi Redis
+	// Format: "refresh_token:${tokenId}"
 	for (const tokenId of tokenIds) {
 		pipeline.del(`${REDIS_KEYS.REFRESH_TOKEN}${tokenId}`);
 	}
 
+	// Xóa luôn Redis set chứa tokenIds (cleanup set này)
 	pipeline.del(setKey);
 
+	// Execute tất cả commands trong pipeline atomically
 	await pipeline.exec();
 }
-
-/* ================================
-   SERVICE
-================================ */
 
 async function register(email, password) {
 	email = validateEmail(email);
@@ -203,48 +196,63 @@ async function login(email, password) {
 }
 
 async function refreshAccessToken(refreshToken) {
+	// Kiểm tra refresh token có được cung cấp không
 	if (!refreshToken) {
 		throw unauthorized("Refresh token is required");
 	}
 
 	let payload;
 
+	// Verify JWT signature + check expiration
 	try {
 		payload = jwt.verify(refreshToken, process.env.JWT_SECRET);
 	} catch {
+		// Token invalid, expired, hoặc signature không match
 		throw unauthorized("Invalid refresh token");
 	}
 
+	// Xác thực token loại là REFRESH (không phải ACCESS)
 	if (payload.type !== REFRESH_TOKEN_TYPE) {
 		throw unauthorized("Invalid token type");
 	}
 
+	// Xây dựng Redis key từ tokenId (format: "refresh_token:${tokenId}")
 	const redisKey = `${REDIS_KEYS.REFRESH_TOKEN}${payload.tokenId}`;
 
+	// Lấy userId từ Redis (nếu token bị revoke sẽ không tồn tại)
 	const storedUserId = await redis.get(redisKey);
 
+	// Kiểm tra: token có trong Redis + userId match JWT payload
+	// Nếu fail → token đã bị revoke hoặc data không hợp lệ
 	if (!storedUserId || Number(storedUserId) !== payload.userId) {
 		throw unauthorized("Refresh token revoked");
 	}
 
+	// Fetch user từ DB để đảm bảo user vẫn tồn tại + lấy dữ liệu mới
 	const user = await userRepository.findUserById(payload.userId);
 
+	// Nếu user bị xóa → revoke token cũ rồi throw error
 	if (!user) {
 		await revokeRefreshToken(payload.tokenId, payload.userId);
-
 		throw notFound("User not found");
 	}
 
+	// Revoke token cũ (one-time use) - ngăn reuse cùng 1 token nhiều lần
 	await revokeRefreshToken(payload.tokenId, payload.userId);
 
+	// Generate tokenId mới (random 32 hex) cho refresh token mới
 	const newTokenId = crypto.randomBytes(16).toString("hex");
 
+	// Tạo access token mới (short-lived, default 15m)
 	const accessToken = createAccessToken(user);
 
+	// Tạo refresh token mới với tokenId mới
 	const newRefreshToken = createRefreshToken(user.id, newTokenId);
 
+	// Lưu refresh token mới vào Redis với TTL (default 7 days)
 	await saveRefreshToken(newTokenId, user.id);
 
+	// Return cặp tokens mới
 	return {
 		accessToken,
 		refreshToken: newRefreshToken,
@@ -316,52 +324,6 @@ async function changePassword(userId, currentPassword, newPassword) {
 		userId,
 	});
 }
-
-/* ================================
-   EXPORT
-================================ */
-
-/**
- * Register a new user
- * @param {string} email
- * @param {string} password
- * @returns {Promise<Object>}
- */
-
-/**
- * Login user and create tokens
- * @param {string} email
- * @param {string} password
- * @returns {Promise<Object>} Contains accessToken, refreshToken, tokenType, expiresIn
- */
-
-/**
- * Refresh access token using refresh token
- * Revokes old token and issues new tokens
- * @param {string} refreshToken
- * @returns {Promise<Object>} Contains new accessToken, refreshToken, tokenType, expiresIn
- */
-
-/**
- * Logout user by revoking refresh token
- * @param {string} refreshToken
- * @returns {Promise<void>}
- */
-
-/**
- * Get user profile information
- * @param {number} userId
- * @returns {Promise<Object>} User object
- */
-
-/**
- * Change user password
- * Revokes all user tokens after password change
- * @param {number} userId
- * @param {string} currentPassword
- * @param {string} newPassword
- * @returns {Promise<void>}
- */
 
 module.exports = {
 	register,
