@@ -1,36 +1,21 @@
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { useAuthStore } from "@/store/auth";
+import { reactive } from "vue";
+import { toast } from "vue3-toastify";
 
-const router = useRouter();
+const authStore = useAuthStore();
 
-const email = ref("");
-const password = ref("");
-const isLoading = ref(false);
-const errorMessage = ref("");
+const credentials = reactive({ email: "", password: "" });
 
-const handleLogin = async () => {
-	// Validate cơ bản
-	if (!email.value || !password.value) {
-		errorMessage.value = "Vui lòng nhập đầy đủ email và mật khẩu.";
+async function loginHandler() {
+	const res = await authStore.login(credentials.email, credentials.password);
+
+	if (!res.success) {
+		toast.error(res.message);
 		return;
 	}
-
-	errorMessage.value = "";
-	isLoading.value = true;
-
-	try {
-		// Gọi API Đăng nhập của bạn ở đây
-		// Ví dụ: await authStore.login(email.value, password.value);
-		// Sau khi đăng nhập thành công, chuyển hướng về trang chủ
-		// router.push('/');
-	} catch (error) {
-		errorMessage.value =
-			error.message || "Đăng nhập thất bại. Vui lòng thử lại.";
-	} finally {
-		isLoading.value = false;
-	}
-};
+	toast.success("Đăng nhập thành công!");
+}
 </script>
 <template>
 	<main class="auth">
@@ -40,29 +25,25 @@ const handleLogin = async () => {
 			<div class="auth-input">
 				<input
 					type="email"
-					v-model="email"
+					v-model="credentials.email"
 					placeholder="Nhập địa chỉ email"
-					@keyup.enter="handleLogin"
 				/>
 			</div>
 
 			<div class="auth-input">
 				<input
 					type="password"
-					v-model="password"
+					v-model="credentials.password"
 					placeholder="Nhập mật khẩu"
-					@keyup.enter="handleLogin"
 				/>
 			</div>
 
-			<p v-if="errorMessage" class="auth-error">⚠️ {{ errorMessage }}</p>
-
 			<button
 				class="btn btn-primary auth-btn"
-				@click="handleLogin"
-				:disabled="isLoading"
+				@click="loginHandler()"
+				:disabled="authStore.loadingState"
 			>
-				{{ isLoading ? "Đang xử lý..." : "Đăng nhập" }}
+				{{ authStore.loadingState ? "Đang xử lý..." : "Đăng nhập" }}
 			</button>
 
 			<p class="auth-info">
@@ -81,7 +62,7 @@ const handleLogin = async () => {
 	align-items: center;
 	gap: 1rem;
 	padding: 20px;
-	min-height: 80vh; /* Giúp căn giữa màn hình tốt hơn */
+	min-height: 80vh;
 }
 
 .auth-container {
