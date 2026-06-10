@@ -41,7 +41,7 @@ body {
 	max-width: 100%;
 	margin-left: auto;
 	margin-right: auto;
-	padding: 100px 15px;
+	padding: 100px 15px 0px 15px;
 	background-color: var(--primary-bg);
 }
 .btn {

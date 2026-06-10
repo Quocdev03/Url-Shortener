@@ -1,4 +1,16 @@
 /**
+ * Chuyển đổi bất kỳ giá trị date nào sang ISO 8601 string (UTC)
+ * Xử lý: Date object từ MySQL, string ISO, string không có timezone, null/undefined
+ * @param {Date|string|null} value
+ * @returns {string|null}
+ */
+function toISOSafe(value) {
+	if (!value) return null;
+	const d = value instanceof Date ? value : new Date(value);
+	return isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+/**
  * Helper để build response object với cấu trúc thống nhất
  * @param {string} message - Thông báo
  * @param {*} data - Dữ liệu để return
@@ -26,8 +38,9 @@ function formatUrlResponse(url, baseUrl) {
 		shortUrl: `${baseUrl}/${url.code}`,
 		originalUrl: url.original,
 		customAlias: url.customAlias,
-		expiresAt: url.expiresAt,
-		createdAt: url.createdAt,
+		// Luôn trả về ISO string (UTC) để frontend parse chính xác
+		expiresAt: toISOSafe(url.expiresAt),
+		createdAt: toISOSafe(url.createdAt),
 		userId: url.userId,
 	};
 }

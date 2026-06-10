@@ -17,10 +17,11 @@
 <style scoped>
 .footer {
 	width: 100%;
-	background-color: #ffffff;
-	border-top: 1px solid #e2e8f0;
+	background-color: rgba(255, 255, 255, 0.75);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border-top: 1px solid rgba(226, 232, 240, 0.6);
 	padding: 20px 0;
-	margin-top: auto; /* Đẩy footer xuống đáy nếu nội dung trang ít */
 }
 
 .footer-container {

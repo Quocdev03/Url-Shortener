@@ -15,8 +15,6 @@ module.exports = {
 	REDIS: {
 		REFRESH_TOKEN: "refresh_token:",
 		USER_REFRESH_SET: "user_refresh_tokens:",
-		URL_CACHE: "url:",
-		CLICK_COUNT: "clicks:",
 		RATE_LIMIT: "rl:",
 	},
 
@@ -68,4 +66,6 @@ module.exports = {
 		ACCESS_TOKEN_TYPE: "access",
 		REFRESH_TOKEN_TYPE: "refresh",
 	},
+
+	SHORT_URL_DOMAIN: process.env.SHORT_URL_DOMAIN || "http://localhost:3001/",
 };

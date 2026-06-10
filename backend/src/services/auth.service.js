@@ -3,7 +3,12 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const { redis } = require("../config/config");
-const { JWT, ROLES, REDIS: REDIS_KEYS } = require("../config/constants");
+const {
+	JWT,
+	ROLES,
+	REDIS: REDIS_KEYS,
+	SHORT_URL_DOMAIN,
+} = require("../config/constants");
 
 const { validateEmail, validatePassword } = require("../utils/validators");
 
@@ -16,6 +21,7 @@ const {
 
 const { logger } = require("../utils/logger");
 const userRepository = require("../repositories/user.repository");
+const urlRepository = require("../repositories/url.repository");
 
 const {
 	ACCESS_TOKEN_EXPIRES_IN,
@@ -162,6 +168,30 @@ async function register(email, password) {
 	return user;
 }
 
+async function registerAndCreateTokens(email, password) {
+	// Register user first
+	const user = await register(email, password);
+
+	// Create tokens
+	const tokenId = crypto.randomBytes(16).toString("hex");
+	const accessToken = createAccessToken(user);
+	const refreshToken = createRefreshToken(user.id, tokenId);
+
+	await saveRefreshToken(tokenId, user.id);
+
+	return {
+		accessToken,
+		refreshToken,
+		tokenType: "Bearer",
+		expiresIn: ACCESS_TOKEN_EXPIRES_IN,
+		user: {
+			id: user.id,
+			email: user.email,
+			role: user.role,
+		},
+	};
+}
+
 async function login(email, password) {
 	email = validateEmail(email);
 
@@ -192,6 +222,11 @@ async function login(email, password) {
 		refreshToken,
 		tokenType: "Bearer",
 		expiresIn: ACCESS_TOKEN_EXPIRES_IN,
+		user: {
+			id: user.id,
+			email: user.email,
+			role: user.role,
+		},
 	};
 }
 
@@ -288,7 +323,41 @@ async function getProfile(userId) {
 		throw notFound("User not found");
 	}
 
-	return user;
+	// Fetch user's shortened URLs
+	const urls = await urlRepository.findUrlsByQuery({
+		userId: userId,
+		sortBy: "created_at",
+		order: "DESC",
+		limit: 100,
+	});
+
+	// Enrich URLs with click stats, expiration status, and shortUrl
+	const urlsWithStats = urls.map((url) => {
+		const isExpired =
+			url.expiresAt && new Date(url.expiresAt) < new Date() ? true : false;
+
+		return {
+			id: url.id,
+			code: url.code,
+			shortUrl: `${SHORT_URL_DOMAIN}${url.customAlias || url.code}`,
+			originalUrl: url.original,
+			customAlias: url.customAlias,
+			expiresAt: url.expiresAt,
+			createdAt: url.createdAt,
+			userId: url.userId,
+			clicks: url.clicks || 0,
+			isExpired,
+		};
+	});
+
+	// Remove password from user object
+	const { password, ...userWithoutPassword } = user;
+
+	return {
+		...userWithoutPassword,
+		urls: urlsWithStats,
+		domain: SHORT_URL_DOMAIN,
+	};
 }
 
 async function changePassword(userId, currentPassword, newPassword) {
@@ -327,6 +396,7 @@ async function changePassword(userId, currentPassword, newPassword) {
 
 module.exports = {
 	register,
+	registerAndCreateTokens,
 	login,
 	refreshAccessToken,
 	logout,

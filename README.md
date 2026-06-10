@@ -1,20 +1,26 @@
-# 🔗 URL Shortener API
+# 🔗 URL Shortener
 
-REST API rút gọn URL với xác thực JWT, phân quyền, Redis caching và analytics.
+Full-stack URL shortening application với xác thực JWT, phân quyền, Redis caching và analytics.
 
-**Tech Stack:** Node.js 20 · Express.js · MySQL 8 · Redis 7 · Docker
+**Tech Stack:**
+- **Backend:** Node.js 20 · Express.js · MySQL 8 · Redis 7
+- **Frontend:** Vue 3 · Vite · Vue Router · Pinia
+- **Deployment:** Docker & Docker Compose
 
 ---
 
 ## ⭐ Tính năng
 
-- **URL rút gọn** — Hỗ trợ alias tùy chỉnh, thời gian hết hạn, cả public lẫn authenticated
+- **URL rút gọn** — Hỗ trợ public (temporary) và authenticated (persistent) URLs
+- **Custom Alias** — Người dùng có thể đặt alias tùy chỉnh cho URL rút gọn
+- **Expiration** — Hỗ trợ đặt thời gian hết hạn cho URLs
 - **Authentication** — Đăng ký, đăng nhập, refresh token, logout, đổi mật khẩu
-- **JWT + Token Rotation** — Access & refresh token, revoke theo từng thiết bị hoặc tất cả
+- **JWT + Token Rotation** — Access & refresh token với one-time use pattern
 - **Phân quyền (RBAC)** — Admin thấy tất cả URL, user chỉ thấy URL của mình
-- **Analytics** — Theo dõi clicks, IP, user agent, referer
+- **Analytics** — Theo dõi clicks, IP, user agent, referer cho mỗi URL
 - **Redis Cache** — Cache URL redirect, click counter, rate limiting
-- **Rate Limiting** — Sliding window, cấu hình theo từng endpoint
+- **Rate Limiting** — Sliding window, khác nhau cho public vs authenticated
+- **Frontend** — Vue 3 dashboard cho user management và URL tracking
 
 ---
 
@@ -22,6 +28,50 @@ REST API rút gọn URL với xác thực JWT, phân quyền, Redis caching và 
 
 - **Docker & Docker Compose** _(khuyến nghị)_
 - **Node.js 20+** _(nếu chạy local)_
+
+---
+
+## ⚡ Quick Start
+
+### Với Docker (Recommended)
+
+```bash
+# 1. Clone repository
+git clone <repo-url>
+cd url-shortener
+
+# 2. Khởi chạy services
+docker compose up --build
+
+# 3. Truy cập ứng dụng
+# Backend API: http://localhost:3000/api/v1
+# Frontend: http://localhost:5173
+```
+
+### Local Development (Node 20+)
+
+```bash
+# Terminal 1 - Backend
+cd backend
+npm install
+npm run dev
+# Backend: http://localhost:3000
+
+# Terminal 2 - Frontend
+cd frontend
+npm install
+npm run dev
+# Frontend: http://localhost:5173
+```
+
+### Default Credentials
+
+Khi khởi động, database tự động seed 2 tài khoản:
+
+| Email               | Mật khẩu    | Role  |
+| ------------------- | ----------- | ----- |
+| `admin@example.com` | `secret123` | admin |
+| `user@example.com`  | `secret123` | user  |
 
 ---
 
@@ -45,34 +95,60 @@ Request
 
 ```
 url-shortener/
-├── src/
-│   ├── app.js
-│   ├── config/
-│   ├── controllers/
-│   │   ├── auth.controller.js
-│   │   └── url.controller.js
-│   ├── database/
-│   │   ├── init.js
-│   │   ├── schema.sql
-│   ├── middleware/
-│   │   ├── asyncHandler.js
-│   │   └── index.js
-│   ├── repositories/
-│   │   ├── user.repository.js
-│   │   └── url.repository.js
-│   ├── routes/
-│   │   ├── auth.routes.js
-│   │   └── url.routes.js
-│   ├── services/
-│   │   ├── auth.service.js
-│   │   └── url.service.js
-│   └── utils/
-│       ├── errors.js
-│       ├── logger.js
-│       └── validators.js
+├── backend/                    # Express.js API
+│   ├── src/
+│   │   ├── app.js
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   │   ├── auth.controller.js
+│   │   │   └── url.controller.js
+│   │   ├── database/
+│   │   │   ├── init.js
+│   │   │   └── schema.sql
+│   │   ├── middleware/
+│   │   ├── repositories/
+│   │   │   ├── analytics.repository.js
+│   │   │   ├── user.repository.js
+│   │   │   └── url.repository.js
+│   │   ├── routes/
+│   │   │   ├── analytics.routes.js
+│   │   │   ├── auth.routes.js
+│   │   │   └── url.routes.js
+│   │   ├── services/
+│   │   │   ├── analytics.service.js
+│   │   │   ├── auth.service.js
+│   │   │   ├── cache.service.js
+│   │   │   └── url.service.js
+│   │   └── utils/
+│   ├── Dockerfile
+│   └── package.json
+├── frontend/                   # Vue 3 + Vite
+│   ├── src/
+│   │   ├── App.vue
+│   │   ├── main.js
+│   │   ├── style.css
+│   │   ├── api/
+│   │   │   └── index.js
+│   │   ├── assets/
+│   │   ├── components/
+│   │   │   ├── Footer.vue
+│   │   │   ├── Header.vue
+│   │   │   ├── Login.vue
+│   │   │   └── Register.vue
+│   │   ├── router/
+│   │   │   └── index.js
+│   │   ├── store/
+│   │   │   ├── auth.js
+│   │   │   ├── url.js
+│   │   │   └── user.js
+│   │   └── views/
+│   │       └── Home.vue
+│   ├── Dockerfile
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
 ├── docker-compose.yml
-├── Dockerfile
-└── package.json
+└── README.md
 ```
 
 ---
@@ -112,18 +188,7 @@ REFRESH_TOKEN_EXPIRES_IN=30d
 
 ---
 
-## 📊 Dữ liệu mẫu
-
-Khi khởi động lần đầu, database tự động seed 2 tài khoản:
-
-| Email               | Mật khẩu    | Role  |
-| ------------------- | ----------- | ----- |
-| `admin@example.com` | `secret123` | admin |
-| `user@example.com`  | `secret123` | user  |
-
----
-
-## 🔐 Bảo mật
+##  Bảo mật
 
 ### Password Hashing
 
@@ -150,14 +215,42 @@ Tracking:
 
 | Endpoint                     | Giới hạn   |
 | ---------------------------- | ---------- |
-| `POST /api/v1/urls` (public) | 5 req/60s  |
-| `POST /api/v1/urls/auth`     | 30 req/60s |
+| `POST /urls` (public)        | 5 req/60s  |
+| `POST /urls/auth`            | 30 req/60s |
 
 **Response headers:**
 
 - `X-RateLimit-Limit` — Giới hạn requests
 - `X-RateLimit-Remaining` — Requests còn lại
 - `X-RateLimit-Reset` — Thời gian reset
+
+---
+
+## 🖥️ Frontend (Vue 3 + Vite)
+
+### Tính năng
+
+- **Home Page** — Tạo short URLs (public hoặc authenticated)
+- **Guest Mode** — Lưu URLs vào localStorage (không cần login)
+- **Authentication** — Đăng ký, đăng nhập, logout
+- **Dashboard** — Quản lý URLs: view, edit, delete
+- **State Management** — Pinia stores: auth, url, user
+- **Responsive UI** — Tương thích desktop & mobile
+
+### Flows
+
+**Guest User:**
+1. Tạo URL public (không lưu DB)
+2. URLs lưu vào localStorage
+3. Có thể copy short link hoặc xóa
+
+**Authenticated User:**
+1. Login với email & password
+2. Tạo URL (lưu vào database)
+3. Hỗ trợ custom alias & expiration
+4. View all URLs + stats
+5. Edit/delete URLs
+6. Logout
 
 ---
 
@@ -232,6 +325,36 @@ GET /auth/profile
 Authorization: Bearer <ACCESS_TOKEN>
 ```
 
+`200 OK`
+
+```json
+{
+	"success": true,
+	"message": "Profile retrieved successfully",
+	"data": {
+		"user": {
+			"id": 3,
+			"email": "user@example.com",
+			"role": "user",
+			"createdAt": "2026-06-09T14:44:19.000Z",
+			"urls": [
+				{
+					"id": 1,
+					"userId": 3,
+					"original": "https://github.com",
+					"code": "gh2k3j",
+					"customAlias": null,
+					"expiresAt": null,
+					"createdAt": "2026-06-09T14:45:00.000Z"
+				}
+			]
+		}
+	}
+}
+```
+
+Profile bao gồm danh sách tất cả URLs của user (tối đa 100, sắp xếp theo ngày tạo).
+
 #### Đổi mật khẩu
 
 ```
@@ -260,10 +383,65 @@ Authorization: Bearer <ACCESS_TOKEN>
 
 ### 🔗 URL
 
-#### Tạo URL — Public
+#### So sánh Public vs Authenticated URLs
+
+| Tính năng | Public (Guest) | Authenticated |
+|----------|----------------|---|
+| Tạo URL | ✅ | ✅ |
+| Lưu DB | ❌ (Redis cache) | ✅ |
+| Custom alias | ❌ | ✅ |
+| Expiration | ❌ | ✅ |
+| Persistent | ❌ (24h cache) | ✅ |
+| View list | ❌ | ✅ |
+| Edit/Delete | ❌ | ✅ |
+| Analytics | ❌ | ✅ |
+| Rate limit | 5/60s | 30/60s |
+| Frontend storage | localStorage | Server + Pinia |
+
+#### Tạo URL — Public (Guest)
 
 ```
 POST /urls
+Content-Type: application/json
+```
+
+```json
+{
+	"originalUrl": "https://github.com"
+}
+```
+
+`201 Created`
+
+```json
+{
+	"success": true,
+	"message": "URL created successfully (temporary, not saved)",
+	"data": {
+		"id": null,
+		"userId": null,
+		"code": "a1b2c3d",
+		"shortUrl": "http://localhost:3000/a1b2c3d",
+		"original": "https://github.com/",
+		"customAlias": null,
+		"expiresAt": null,
+		"createdAt": "2026-06-10T10:00:00.000Z"
+	}
+}
+```
+
+**Lưu ý:**
+- URL không được lưu vào database
+- Cache trong Redis với TTL 24 giờ
+- Frontend tự động lưu vào localStorage cho guest users
+- Không hỗ trợ custom alias hoặc expiration date
+
+#### Tạo URL — Authenticated
+
+```
+POST /urls/auth
+Authorization: Bearer <ACCESS_TOKEN>
+Content-Type: application/json
 ```
 
 ```json
@@ -279,25 +457,25 @@ POST /urls
 ```json
 {
 	"success": true,
+	"message": "URL created successfully",
 	"data": {
 		"id": 5,
+		"userId": 3,
 		"code": "gh",
 		"shortUrl": "http://localhost:3000/gh",
-		"originalUrl": "https://github.com/",
+		"original": "https://github.com/",
 		"customAlias": "gh",
-		"expiresAt": "2026-12-31T23:59:59Z"
+		"expiresAt": "2026-12-31T23:59:59Z",
+		"createdAt": "2026-06-10T10:00:00.000Z"
 	}
 }
 ```
 
-#### Tạo URL — Authenticated
-
-```
-POST /urls/auth
-Authorization: Bearer <ACCESS_TOKEN>
-```
-
-Body giống endpoint public. URL được gắn với user hiện tại. Rate limit cao hơn (30/60s vs 10/60s).
+**Lưu ý:**
+- URL được lưu vĩnh viễn vào database
+- Gắn với user hiện tại
+- Hỗ trợ custom alias (nếu chưa được dùng) và expiration date
+- Rate limit cao hơn: 30 req/60s (vs 5 req/60s cho public)
 
 #### Danh sách URL
 
@@ -337,26 +515,36 @@ DELETE /urls/:id
 Authorization: Bearer <ACCESS_TOKEN>
 ```
 
-#### Thống kê Click
+#### Thống kê Click của một URL
 
 ```
 GET /urls/:id/stats
 Authorization: Bearer <ACCESS_TOKEN>
 ```
 
+`200 OK`
+
 ```json
 {
 	"success": true,
+	"message": "Stats retrieved successfully",
 	"data": {
-		"url": { "id": 5, "code": "gh", "original": "https://github.com/" },
+		"url": {
+			"id": 5,
+			"code": "gh",
+			"original": "https://github.com/",
+			"shortUrl": "http://localhost:3000/gh"
+		},
 		"totalClicks": 42,
 		"cacheClicks": 10,
 		"recentClicks": [
 			{
+				"id": 1,
+				"urlId": 5,
 				"ip": "1.2.3.4",
-				"userAgent": "...",
+				"userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
 				"referer": "twitter.com",
-				"clickedAt": "..."
+				"clickedAt": "2026-06-10T10:30:00.000Z"
 			}
 		]
 	}
@@ -369,7 +557,13 @@ Authorization: Bearer <ACCESS_TOKEN>
 GET /:code
 ```
 
-`302 Redirect` → Original URL. Ưu tiên Redis cache, fallback MySQL. Ghi analytics bất đồng bộ.
+`302 Found` → Original URL
+
+**Cơ chế:**
+1. Kiểm tra cache Redis trước (nhanh)
+2. Nếu miss, query MySQL (fallback)
+3. Ghi nhận click bất đồng bộ (không chặn response)
+4. Tracking: IP, User-Agent, Referer
 
 ---
 
@@ -378,21 +572,30 @@ GET /:code
 #### Danh sách Analytics (Admin only)
 
 ```
-GET /analytic/
+GET /analytics
 Authorization: Bearer <ACCESS_TOKEN>
 ```
 
-**Query params:** `page`, `limit`, `search`, `sortBy` (`clicked_at`|`ip`|`url_id`), `order` (`asc`|`desc`), `urlId` (lọc theo URL)
+**Query params:**
+- `page` (default: 1)
+- `limit` (default: 20)
+- `search` — Tìm trong IP, user agent, referer
+- `sortBy` — `clicked_at`, `ip`
+- `order` — `asc`, `desc`
+- `urlId` — Lọc theo URL ID
+
+`200 OK`
 
 ```json
 {
 	"success": true,
+	"message": "Analytics retrieved successfully",
 	"data": [
 		{
 			"id": 1,
 			"urlId": 5,
 			"code": "gh",
-			"originalUrl": "https://github.com",
+			"original": "https://github.com",
 			"ip": "1.2.3.4",
 			"userAgent": "Mozilla/5.0...",
 			"referer": "twitter.com",
@@ -412,6 +615,8 @@ Authorization: Bearer <ACCESS_TOKEN>
 
 ## 💡 Ví dụ sử dụng
 
+### Backend API
+
 ```bash
 # 1. Đăng nhập và lấy token
 TOKEN=$(curl -sX POST http://localhost:3000/api/v1/auth/login \
@@ -419,21 +624,38 @@ TOKEN=$(curl -sX POST http://localhost:3000/api/v1/auth/login \
   -d '{"email":"user@example.com","password":"secret123"}' \
   | jq -r '.data.accessToken')
 
-# 2. Tạo URL rút gọn
+# 2. Tạo URL rút gọn (authenticated)
 curl -X POST http://localhost:3000/api/v1/urls/auth \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
-  -d '{"originalUrl":"https://github.com","customAlias":"gh"}'
+  -d '{
+    "originalUrl":"https://github.com",
+    "customAlias":"gh",
+    "expiresAt":"2026-12-31T23:59:59Z"
+  }'
 
-# 3. Redirect
+# 3. Danh sách URLs của user
+curl http://localhost:3000/api/v1/urls \
+  -H "Authorization: Bearer $TOKEN"
+
+# 4. Xem stats của một URL
+curl http://localhost:3000/api/v1/urls/5/stats \
+  -H "Authorization: Bearer $TOKEN"
+
+# 5. Redirect (public - không cần token)
 curl -I http://localhost:3000/gh
 # HTTP/1.1 302 Found
 # Location: https://github.com/
-
-# 4. Xem thống kê
-curl http://localhost:3000/api/v1/urls/1/stats \
-  -H "Authorization: Bearer $TOKEN"
 ```
+
+### Frontend
+
+1. **Truy cập:** `http://localhost:5173`
+2. **Trang chủ:**
+   - Guest users: Tạo public URLs (lưu vào localStorage)
+   - Authenticated users: Tạo persistent URLs + quản lý danh sách
+3. **Login/Register:** Đăng ký tài khoản hoặc đăng nhập
+4. **Dashboard:** Xem danh sách URLs, stats, xóa, cập nhật
 
 ---
 
@@ -469,39 +691,117 @@ docker compose exec mysql mysql -u root -psecret urlshortener -e "SELECT email F
 
 ## 📦 Commands
 
-### Docker
+### Docker (Recommended)
 
 ```bash
-docker compose up --build          # Build và khởi chạy
-docker compose up                  # Khởi chạy (không rebuild)
-docker compose down                # Dừng
-docker compose down -v             # Dừng và xóa volumes
-docker compose down -v --remove-orphans  # Xóa sạch hoàn toàn
-```
+# Build và khởi chạy tất cả services
+docker compose up --build
 
-### Logs & Debug
+# Khởi chạy (không rebuild)
+docker compose up
 
-```bash
-docker compose logs -f app
+# Dừng services
+docker compose down
+
+# Xóa volumes (reset database)
+docker compose down -v
+
+# Xóa sạch hoàn toàn
+docker compose down -v --remove-orphans
+
+# View logs
+docker compose logs -f app        # Backend
+docker compose logs -f web        # Frontend
 docker compose logs -f mysql
 docker compose logs -f redis
-
-docker compose exec mysql mysql -u root -psecret urlshortener
-docker compose exec redis redis-cli
 ```
 
-### NPM
+### Local Development (Node 20+)
+
+**Backend:**
+```bash
+cd backend
+npm install
+npm run dev    # Watch mode (nodemon)
+# Server runs on http://localhost:3000
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm install
+npm run dev    # Vite dev server
+# Frontend runs on http://localhost:5173
+```
+
+### Database Management
 
 ```bash
-# Trong container
-docker compose exec app npm run dev    # Watch mode
+# Access MySQL
+docker compose exec mysql mysql -u root -psecret urlshortener
 
-# Local (Node 20+)
-npm run dev    # nodemon watch
-npm start      # production
+# Access Redis CLI
+docker compose exec redis redis-cli
+
+# Check Redis connection
+docker compose exec redis redis-cli ping
+
+# View users
+docker compose exec mysql mysql -u root -psecret urlshortener -e "SELECT id, email, role FROM users"
+
+# View URLs
+docker compose exec mysql mysql -u root -psecret urlshortener -e "SELECT id, user_id, code, custom_alias FROM urls LIMIT 10"
 ```
 
-### Fix
+### NPM Scripts
 
+**Backend:**
+```bash
+npm run dev       # Development (watch mode)
+npm start         # Production
+npm test          # Run tests (if available)
+```
+
+**Frontend:**
+```bash
+npm run dev       # Vite dev server
+npm run build     # Build for production
+npm run preview   # Preview production build
+```
+
+### Troubleshooting
+
+**Port already in use:**
+```bash
+# Backend (3000) - Kill process using port 3000
+lsof -ti:3000 | xargs kill -9
+
+# Frontend (5173) - Kill process using port 5173
+lsof -ti:5173 | xargs kill -9
+```
+
+**Database connection error:**
+```bash
+# Check if MySQL is running
+docker compose ps
+docker compose up -d mysql
+
+# Reset database
+docker compose down -v
+docker compose up --build
+```
+
+**Redis error:**
+```bash
+# Check Redis connection
+docker compose exec redis redis-cli ping
+
+# Restart Redis
+docker compose restart redis
+```
+
+**Fix Windows Hyper-V networking (if needed):**
+```bash
 net stop winnat
 net start winnat
+```

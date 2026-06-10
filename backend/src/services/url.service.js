@@ -7,16 +7,12 @@ const {
 } = require("../utils/errors");
 const { validateUrl } = require("../utils/validators");
 const urlRepository = require("../repositories/url.repository");
-const { getUrlCache, setUrlCache, deleteUrlCache } = require("./cache.service");
 
 async function createShortUrlPublic({ originalUrl }) {
 	// Validate và normalize URL đầu vào
 	const normalizedUrl = validateUrl(originalUrl);
 	// Generate random 7-ký-tự code cho public URL (không lưu DB)
 	const code = nanoid(7);
-
-	// Lưu vào Redis cache với TTL 24 giờ (default)
-	await setUrlCache(code, normalizedUrl);
 
 	// Return URL object với id=null, userId=null (public, temporary)
 	return {
@@ -58,34 +54,36 @@ async function createShortUrl({ originalUrl, customAlias, expiresAt, userId }) {
 		}
 	}
 
+	// Normalize expiresAt → UTC ISO string trước khi lưu DB
+	// Tránh lỗi khi frontend gửi datetime-local string không có timezone (vd: "2026-06-15T10:00")
+	let normalizedExpiresAt = null;
+	if (expiresAt) {
+		const d = new Date(expiresAt);
+		if (!isNaN(d.getTime())) {
+			normalizedExpiresAt = d.toISOString();
+		}
+	}
+
 	// Lưu vào DB với user_id, original URL, generated/custom code
 	const url = await urlRepository.createUrl({
 		userId,
 		original: normalizedUrl,
 		code,
 		customAlias: customAlias || null,
-		expiresAt: expiresAt || null,
+		expiresAt: normalizedExpiresAt,
 	});
 
-	// Cache vào Redis: key=code, value=original_url (TTL=1 giờ)
-	await setUrlCache(code, normalizedUrl);
 	return url;
 }
 
 async function resolveCode(code) {
-	// Try lấy từ Redis cache trước (fast path, O(1))
-	const cached = await getUrlCache(code);
-	if (cached) return cached;
-
-	// Nếu cache miss → query database
+	// Query database trực tiếp
 	const url = await urlRepository.findUrlByCode(code);
 	if (!url) return null;
 
 	// Check expiration: nếu có expires_at và < hiện tại → URL đã hết hạn
 	if (url.expiresAt && new Date(url.expiresAt) < new Date()) return null;
 
-	// Lưu lại vào cache để lần sau nhanh hơn
-	await setUrlCache(code, url.original);
 	return url.original;
 }
 
@@ -178,15 +176,19 @@ async function updateUrl(id, data, userId, isAdmin) {
 		fields.original = validateUrl(data.originalUrl); // Validate nếu có
 	}
 	if (data.expiresAt !== undefined) {
-		fields.expiresAt = data.expiresAt || null; // Allow clear expiration
+		// Normalize → UTC ISO string, hoặc null nếu muốn xóa expiration
+		if (data.expiresAt) {
+			const d = new Date(data.expiresAt);
+			fields.expiresAt = !isNaN(d.getTime()) ? d.toISOString() : null;
+		} else {
+			fields.expiresAt = null; // Allow clear expiration
+		}
 	}
 
 	// Update vào DB
 	const updated = await urlRepository.updateUrl(id, fields);
 	if (!updated) throw badRequest("No valid fields to update");
 
-	// Update cache với original URL mới
-	await setUrlCache(url.code, updated.original);
 	return updated;
 }
 
@@ -200,9 +202,6 @@ async function deleteUrl(id, userId, isAdmin) {
 
 	// Xóa từ database
 	await urlRepository.deleteUrl(id);
-
-	// Xóa từ cache
-	await deleteUrlCache(url.code);
 }
 
 module.exports = {

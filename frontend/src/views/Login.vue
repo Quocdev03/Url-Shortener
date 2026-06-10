@@ -1,9 +1,11 @@
 <script setup>
 import { useAuthStore } from "@/store/auth";
+import { useRouter } from "vue-router";
 import { reactive } from "vue";
 import { toast } from "vue3-toastify";
 
 const authStore = useAuthStore();
+const router = useRouter();
 
 const credentials = reactive({ email: "", password: "" });
 
@@ -15,6 +17,8 @@ async function loginHandler() {
 		return;
 	}
 	toast.success("Đăng nhập thành công!");
+	// Redirect to home after successful login
+	router.push("/");
 }
 </script>
 <template>
@@ -71,10 +75,13 @@ async function loginHandler() {
 	justify-content: center;
 	flex-direction: column;
 	gap: 16px;
-	background: #ffffff;
+	background: rgba(255, 255, 255, 0.75);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
 	padding: 40px;
 	border-radius: 16px;
 	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+	border: 1px solid rgba(255, 255, 255, 0.5);
 	width: 100%;
 	max-width: 450px;
 }

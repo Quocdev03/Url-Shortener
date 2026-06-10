@@ -1,0 +1,80 @@
+/* =============================================
+   Brand Design Tokens — LinkSnap
+   Gradient: #00b3fa → #1a80e5 → #4261ed
+   ============================================= */
+
+:root {
+  /* --- Primary Gradient --- */
+  --brand-gradient: linear-gradient(135deg, #00b3fa 0%, #1a80e5 50%, #4261ed 100%);
+  --brand-gradient-hover: linear-gradient(135deg, #00a3e8 0%, #1572d0 50%, #3451d8 100%);
+
+  /* --- Color Stops --- */
+  --brand-cyan:  #00b3fa;
+  --brand-blue:  #1a80e5;
+  --brand-indigo: #4261ed;
+
+  /* --- Text on gradient (white) --- */
+  --brand-on-gradient: #ffffff;
+
+  /* --- UI Tokens --- */
+  --brand-bg-subtle: #eef5fe;
+  --brand-border: #b5d4f4;
+  --brand-text: #1a80e5;
+  --brand-text-dark: #0c447c;
+}
+
+/* --- Utility Classes --- */
+.btn-brand {
+  background: var(--brand-gradient);
+  color: var(--brand-on-gradient);
+  border: none;
+  border-radius: 9999px;
+  padding: 10px 24px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.btn-brand:hover { opacity: 0.88; }
+
+.btn-brand-outline {
+  background: transparent;
+  color: var(--brand-blue);
+  border: 1.5px solid var(--brand-blue);
+  border-radius: 9999px;
+  padding: 10px 24px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.text-brand-gradient {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.badge-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--brand-gradient);
+  color: white;
+  border-radius: 9999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.url-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--brand-gradient);
+  color: white;
+  border-radius: 9999px;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 500;
+}

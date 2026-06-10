@@ -9,7 +9,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-	const token = localStorage.getItem("token");
+	const token = localStorage.getItem("access_token");
 	if (token) {
 		config.headers = config.headers || {};
 		config.headers.Authorization = `Bearer ${token}`;
@@ -23,7 +23,7 @@ api.interceptors.response.use(
 		if (error.response) {
 			if (error.response.status === 401) {
 				// Token expired / unauthorized: xử lý logout nếu cần
-				localStorage.removeItem("token");
+				localStorage.removeItem("access_token");
 			}
 			return Promise.reject(
 				error.response.data?.message ||

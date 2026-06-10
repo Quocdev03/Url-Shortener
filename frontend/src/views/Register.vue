@@ -1,13 +1,15 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { useAuthStore } from "@/store/auth";
+import { toast } from "vue3-toastify";
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 const email = ref("");
 const password = ref("");
 const confirmPassword = ref("");
-const isLoading = ref(false);
 const errorMessage = ref("");
 
 const handleRegister = async () => {
@@ -22,21 +24,23 @@ const handleRegister = async () => {
 		return;
 	}
 
-	errorMessage.value = "";
-	isLoading.value = true;
-
-	try {
-		// Gọi API Đăng ký của bạn ở đây
-		// Ví dụ: await authStore.register(email.value, password.value);
-
-		alert("Đăng ký thành công!");
-		router.push("/login");
-	} catch (error) {
-		errorMessage.value =
-			error.message || "Đăng ký thất bại. Vui lòng thử lại.";
-	} finally {
-		isLoading.value = false;
+	if (password.value.length < 8) {
+		errorMessage.value = "Mật khẩu phải có ít nhất 8 ký tự.";
+		return;
 	}
+
+	errorMessage.value = "";
+
+	const res = await authStore.register(email.value, password.value);
+
+	if (!res.success) {
+		errorMessage.value = res.message || "Đăng ký thất bại. Vui lòng thử lại.";
+		toast.error(errorMessage.value);
+		return;
+	}
+
+	toast.success("Đăng ký thành công!");
+	router.push("/");
 };
 </script>
 <template>
@@ -76,9 +80,9 @@ const handleRegister = async () => {
 			<button
 				class="btn btn-primary auth-btn"
 				@click="handleRegister"
-				:disabled="isLoading"
+				:disabled="authStore.loadingState"
 			>
-				{{ isLoading ? "Đang tạo tài khoản..." : "Đăng ký" }}
+				{{ authStore.loadingState ? "Đang tạo tài khoản..." : "Đăng ký" }}
 			</button>
 
 			<p class="auth-info">
@@ -106,10 +110,13 @@ const handleRegister = async () => {
 	justify-content: center;
 	flex-direction: column;
 	gap: 16px;
-	background: #ffffff;
+	background: rgba(255, 255, 255, 0.75);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
 	padding: 40px;
 	border-radius: 16px;
 	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+	border: 1px solid rgba(255, 255, 255, 0.5);
 	width: 100%;
 	max-width: 450px;
 }

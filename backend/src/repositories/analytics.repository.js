@@ -1,6 +1,15 @@
 const { db } = require("../config/config");
 
 /**
+ * Increment click count cho một URL
+ * @param {number} urlId - ID của URL
+ * @returns {Promise<void>}
+ */
+async function incrementClickCount(urlId) {
+	await db.query("UPDATE urls SET clicks = clicks + 1 WHERE id = ?", [urlId]);
+}
+
+/**
  * Ghi nhận một click/truy cập URL
  * @param {Object} params - {urlId, ip, userAgent, referer}
  * @returns {Promise<void>}
@@ -60,6 +69,28 @@ async function countAnalyticsByQuery({ search, urlId }) {
 }
 
 /**
+ * Lấy số clicks cho mỗi URL của user
+ * @param {number} userId - ID của user
+ * @returns {Promise<Object>} - Map {urlId: clickCount}
+ */
+async function getClickCountsByUserId(userId) {
+	const [rows] = await db.query(
+		`SELECT u.id, COUNT(a.id) AS clicks
+		 FROM urls u
+		 LEFT JOIN analytics a ON u.id = a.url_id
+		 WHERE u.user_id = ?
+		 GROUP BY u.id`,
+		[userId],
+	);
+
+	const clickMap = {};
+	rows.forEach((row) => {
+		clickMap[row.id] = row.clicks;
+	});
+	return clickMap;
+}
+
+/**
  * Lấy danh sách analytics với lọc, tìm kiếm, sắp xếp, phân trang
  * @param {Object} options - {search, urlId, sortBy, order, offset, limit}
  * @returns {Promise<Array>} - Mảng analytics records
@@ -113,6 +144,7 @@ async function getAllAnalytics({
 }
 
 module.exports = {
+	incrementClickCount,
 	recordClick,
 	getUrlAnalytics,
 	countAnalyticsByQuery,

@@ -1,21 +1,43 @@
 const { db } = require("../config/config");
 
+/**
+ * Convert bất kỳ giá trị date nào → MySQL DATETIME string (YYYY-MM-DD HH:MM:SS, UTC)
+ * MySQL DATETIME không chứa timezone, ta lưu theo UTC
+ * @param {Date|string|null} value
+ * @returns {string|null}
+ */
+function toMySQLDatetime(value) {
+	if (!value) return null;
+	const d = value instanceof Date ? value : new Date(value);
+	if (isNaN(d.getTime())) return null;
+	// Lấy các thành phần UTC rồi format thủ công → "YYYY-MM-DD HH:MM:SS"
+	const pad = (n) => String(n).padStart(2, "0");
+	return (
+		`${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ` +
+		`${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`
+	);
+}
+
 async function createUrl({ userId, original, code, customAlias, expiresAt }) {
+	// Convert expiresAt → MySQL DATETIME string (MySQL không hiểu ISO 8601 có 'T'/'Z')
+	const mysqlExpiresAt = toMySQLDatetime(expiresAt);
+
 	// INSERT vào database với parameters (SQLi-safe)
 	// Nếu không có userId/customAlias/expiresAt → NULL trong DB
 	const [result] = await db.query(
 		"INSERT INTO urls (user_id, original, code, custom_alias, expires_at) VALUES (?, ?, ?, ?, ?)",
-		[userId || null, original, code, customAlias || null, expiresAt || null],
+		[userId || null, original, code, customAlias || null, mysqlExpiresAt],
 	);
 
-	// Return object với insertId từ DB
+	// Return object với insertId từ DB (trả ISO string để formatter xử lý nhất quán)
 	return {
 		id: result.insertId,
 		userId: userId || null,
 		original,
 		code,
 		customAlias: customAlias || null,
-		expiresAt,
+		expiresAt: mysqlExpiresAt,
+		clicks: 0,
 		createdAt: new Date().toISOString(),
 	};
 }
@@ -24,7 +46,7 @@ async function findUrlByCode(code) {
 	// Query URL by short code (exact match)
 	// SELECT statement converts snake_case → camelCase (u.d AS userId)
 	const [rows] = await db.query(
-		"SELECT id, user_id AS userId, original, code, custom_alias AS customAlias, expires_at AS expiresAt, created_at AS createdAt FROM urls WHERE code = ?",
+		"SELECT id, user_id AS userId, original, code, custom_alias AS customAlias, expires_at AS expiresAt, clicks, created_at AS createdAt FROM urls WHERE code = ?",
 		[code],
 	);
 	// Return first row hay null nếu không tìm thấy
@@ -34,7 +56,7 @@ async function findUrlByCode(code) {
 async function findUrlById(id) {
 	// Query URL by ID (PK lookup)
 	const [rows] = await db.query(
-		"SELECT id, user_id AS userId, original, code, custom_alias AS customAlias, expires_at AS expiresAt, created_at AS createdAt FROM urls WHERE id = ?",
+		"SELECT id, user_id AS userId, original, code, custom_alias AS customAlias, expires_at AS expiresAt, clicks, created_at AS createdAt FROM urls WHERE id = ?",
 		[id],
 	);
 	return rows[0] || null;
@@ -63,7 +85,8 @@ async function updateUrl(id, fields) {
 	}
 	if (fields.expiresAt !== undefined) {
 		updates.push("expires_at = ?");
-		values.push(fields.expiresAt);
+		// Convert → MySQL DATETIME format (MySQL không hiểu ISO 8601 có 'T'/'Z')
+		values.push(toMySQLDatetime(fields.expiresAt));
 	}
 
 	// Nếu không có field nào update → return null
@@ -180,7 +203,7 @@ async function findUrlsByQuery({
 
 	// SQL query với parameterized placeholders (?) để bảo vệ injection
 	// AS clauses để convert snake_case từ DB → camelCase cho API
-	const query = `SELECT id, user_id AS userId, original, code, custom_alias AS customAlias, expires_at AS expiresAt, created_at AS createdAt
+	const query = `SELECT id, user_id AS userId, original, code, custom_alias AS customAlias, expires_at AS expiresAt, clicks, created_at AS createdAt
     FROM urls ${where}
     ORDER BY ${safeSortBy} ${direction}
     LIMIT ? OFFSET ?`;

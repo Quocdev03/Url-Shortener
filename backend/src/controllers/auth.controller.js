@@ -5,12 +5,12 @@ const { HEADERS } = require("../config/constants");
 const register = async (req, res, next) => {
 	try {
 		const { email, password } = req.body;
-		// Call service để validate + hash password + create user
-		const user = await authService.register(email, password);
+		// Call service để validate + hash password + create user + generate tokens
+		const result = await authService.registerAndCreateTokens(email, password);
 		res.status(201).json({
 			success: true,
 			message: "User registered successfully",
-			data: { user },
+			data: result,
 		});
 	} catch (error) {
 		next(error);
@@ -80,6 +80,7 @@ const profile = async (req, res, next) => {
 					email: user.email,
 					role: user.role,
 					createdAt: user.createdAt,
+					urls: user.urls,
 				},
 			},
 		});

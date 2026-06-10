@@ -1,18 +1,21 @@
 const { forbidden, notFound } = require("../utils/errors");
 const urlRepository = require("../repositories/url.repository");
 const analyticsRepository = require("../repositories/analytics.repository");
-const { getClickCache } = require("./cache.service");
 
 /**
- * Ghi nhận click/truy cập của một URL
+ * Increment click count và lưu chi tiết click
  * @param {string} code - Mã rút gọn
  * @param {Object} clickData - Thông tin click {ip, userAgent, referer}
  * @returns {Promise<void>}
  */
-async function recordClick(code, { ip, userAgent, referer }) {
+async function incrementClick(code, { ip, userAgent, referer }) {
 	const url = await urlRepository.findUrlByCode(code);
 	if (!url) return;
 
+	// Increment clicks counter trong urls table
+	await analyticsRepository.incrementClickCount(url.id);
+
+	// Lưu chi tiết click vào analytics table
 	await analyticsRepository.recordClick({
 		urlId: url.id,
 		ip,
@@ -26,7 +29,7 @@ async function recordClick(code, { ip, userAgent, referer }) {
  * @param {number} id - ID của URL
  * @param {number} userId - ID người dùng hiện tại
  * @param {boolean} isAdmin - Có phải admin không
- * @returns {Promise<Object>} - Thống kê URL {url, totalClicks, cacheClicks, recentClicks}
+ * @returns {Promise<Object>} - Thống kê URL {url, totalClicks, recentClicks}
  */
 async function getStats(id, userId, isAdmin) {
 	const url = await urlRepository.findUrlById(id);
@@ -34,12 +37,10 @@ async function getStats(id, userId, isAdmin) {
 	if (!isAdmin && url.userId !== userId) throw forbidden("Access denied");
 
 	const analytics = await analyticsRepository.getUrlAnalytics(id);
-	const clickCount = await getClickCache(url.code);
 
 	return {
 		url,
 		totalClicks: analytics.total,
-		cacheClicks: clickCount ? Number(clickCount) : 0,
 		recentClicks: analytics.recent,
 	};
 }
@@ -86,7 +87,7 @@ async function getAnalytics({
 }
 
 module.exports = {
-	recordClick,
+	incrementClick,
 	getStats,
 	getAnalytics,
 };

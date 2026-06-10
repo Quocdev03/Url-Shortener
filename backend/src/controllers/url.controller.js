@@ -226,22 +226,21 @@ const redirect = async (req, res, next) => {
 		const original = await urlService.resolveCode(code);
 
 		if (!original) {
-			return res.status(404).json({
-				success: false,
-				message: "URL not found or expired",
-				errors: [],
-			});
+			// Lấy frontend URL từ biến môi trường, hoặc dùng default
+			const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5174";
+			// Redirect user tới trang thông báo expired của frontend
+			return res.redirect(302, `${frontendUrl}/expired`);
 		}
 
-		// Ghi nhận click nhưng không chặn response nếu ghi nhận thất bại
+		// Increment click count (fire and forget)
 		analyticsService
-			.recordClick(code, {
+			.incrementClick(code, {
 				ip: req.ip,
 				userAgent: req.get("User-Agent"),
 				referer: req.get("Referer"),
 			})
 			.catch((err) => {
-				logger.error(`Click recording failed for code=${code}`, err);
+				logger.error(`Click increment failed for code=${code}`, err);
 			});
 
 		return res.redirect(302, original);
