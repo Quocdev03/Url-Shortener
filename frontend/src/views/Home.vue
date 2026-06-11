@@ -42,6 +42,8 @@ const copyToClipboard = async (text) => {
 	}
 };
 
+const lastShortenedUrl = ref(null);
+
 const shortenUrl = async () => {
 	if (!inputUrl.value.trim()) return;
 
@@ -51,10 +53,25 @@ const shortenUrl = async () => {
 			const payload = { originalUrl: inputUrl.value };
 			if (customAlias.value.trim())
 				payload.customAlias = customAlias.value.trim();
-			if (expiresAt.value)
+
+			if (showAdvanced.value) {
+				if (!expiresAt.value) {
+					toast.error(
+						"Vui lòng chọn ngày hết hạn khi sử dụng tùy chọn nâng cao!",
+					);
+					return;
+				}
 				payload.expiresAt = new Date(expiresAt.value).toISOString();
+			}
 
 			res = await urlStore.createUrl(payload, true);
+			if (res?.data) {
+				lastShortenedUrl.value = {
+					original: res.data.originalUrl,
+					short: res.data.shortUrl,
+					customAlias: res.data.customAlias,
+				};
+			}
 		} else {
 			res = await urlStore.createUrl(
 				{ originalUrl: inputUrl.value },
@@ -66,6 +83,11 @@ const shortenUrl = async () => {
 					"guest_urls",
 					JSON.stringify(guestUrls.value),
 				);
+				lastShortenedUrl.value = {
+					original: res.data.originalUrl,
+					short: res.data.shortUrl,
+					customAlias: null,
+				};
 			}
 		}
 
@@ -120,12 +142,6 @@ const shortenUrl = async () => {
 				@click="showAdvanced = !showAdvanced"
 			>
 				<span>⚡ Tùy chọn nâng cao (Alias, Hết hạn)</span>
-				<i
-					:class="{
-						'arrow-up': showAdvanced,
-						'arrow-down': !showAdvanced,
-					}"
-				></i>
 			</div>
 
 			<div v-if="isLoggedIn && showAdvanced" class="advanced-fields">
@@ -139,8 +155,45 @@ const shortenUrl = async () => {
 				</div>
 
 				<div class="field">
-					<label>Ngày hết hạn (Tùy chọn)</label>
-					<input type="datetime-local" v-model="expiresAt" />
+					<label>Ngày hết hạn (Bắt buộc)</label>
+					<input type="datetime-local" v-model="expiresAt" required />
+				</div>
+			</div>
+
+			<!-- Hộp hiển thị kết quả rút gọn mới tạo -->
+			<div
+				v-if="lastShortenedUrl"
+				class="result-box-wrapper animate-fade-in"
+			>
+				<div class="result-box-header">
+					<h4>🎉 Link rút gọn của bạn:</h4>
+					<button
+						class="btn-close-result"
+						@click="lastShortenedUrl = null"
+					>
+						✕
+					</button>
+				</div>
+				<div class="result-box-body">
+					<div class="result-box-links">
+						<a
+							:href="lastShortenedUrl.short"
+							target="_blank"
+							class="result-short-url"
+							>{{ lastShortenedUrl.short }}</a
+						>
+						<span
+							class="result-original-url"
+							:title="lastShortenedUrl.original"
+							>{{ lastShortenedUrl.original }}</span
+						>
+					</div>
+					<button
+						class="btn-copy-result"
+						@click="copyToClipboard(lastShortenedUrl.short)"
+					>
+						Sao chép 📋
+					</button>
 				</div>
 			</div>
 
@@ -151,103 +204,56 @@ const shortenUrl = async () => {
 			</p>
 		</div>
 
+		<!-- Chỉ hiện lịch sử cục bộ cho Guest (khách chưa login), vì logged user đã có trang Profile -->
 		<div
 			class="home-history-panel"
-			v-if="
-				(isLoggedIn && urlStore.urls.length > 0) ||
-				(!isLoggedIn && guestUrls.length > 0)
-			"
+			v-if="!isLoggedIn && guestUrls.length > 0"
 		>
 			<div class="panel-header">
-				<h2>
-					{{
-						isLoggedIn ? "Kho Link Của Bạn" : "Liên Kết Vừa Rút Gọn"
-					}}
-				</h2>
-				<span class="badge"
-					>{{
-						isLoggedIn ? urlStore.urls.length : guestUrls.length
-					}}
-					link</span
-				>
+				<h2>Liên Kết Vừa Rút Gọn</h2>
+				<span class="badge">{{ guestUrls.length }} link</span>
 			</div>
 
 			<ul class="history-list">
-				<template v-if="!isLoggedIn">
-					<li
-						v-for="(item, index) in guestUrls"
-						:key="'guest-' + index"
-						class="history-item"
-					>
-						<div class="url-details">
-							<span
-								class="original-url"
-								:title="item.originalUrl || item.original"
-							>
-								{{ item.originalUrl || item.original }}
-							</span>
-							<a
-								:href="item.shortUrl || item.short"
-								target="_blank"
-								class="short-url"
-							>
-								{{ item.shortUrl || item.short }}
-							</a>
-						</div>
-						<div class="actions">
-							<button
-								@click="
-									copyToClipboard(item.shortUrl || item.short)
-								"
-								class="action-btn copy"
-								title="Copy"
-							>
-								📋
-							</button>
-							<button
-								@click="deleteGuestUrl(index)"
-								class="action-btn delete"
-								title="Xóa"
-							>
-								🗑️
-							</button>
-						</div>
-					</li>
-				</template>
-
-				<template v-else>
-					<li
-						v-for="(item, index) in urlStore.urls"
-						:key="'user-' + index"
-						class="history-item"
-					>
-						<div class="url-details">
-							<span class="original-url" :title="item.original">{{
-								item.original
-							}}</span>
-							<div class="short-url-group">
-								<a
-									:href="item.short"
-									target="_blank"
-									class="short-url"
-									>{{ item.short }}</a
-								>
-								<span v-if="item.customAlias" class="alias-tag"
-									>Alias: {{ item.customAlias }}</span
-								>
-							</div>
-						</div>
-						<div class="actions">
-							<button
-								@click="copyToClipboard(item.short)"
-								class="action-btn copy"
-								title="Copy"
-							>
-								📋
-							</button>
-						</div>
-					</li>
-				</template>
+				<li
+					v-for="(item, index) in guestUrls"
+					:key="'guest-' + index"
+					class="history-item"
+				>
+					<div class="url-details">
+						<span
+							class="original-url"
+							:title="item.originalUrl || item.original"
+						>
+							{{ item.originalUrl || item.original }}
+						</span>
+						<a
+							:href="item.shortUrl || item.short"
+							target="_blank"
+							class="short-url"
+						>
+							{{ item.shortUrl || item.short }}
+						</a>
+					</div>
+					<div class="actions">
+						<button
+							@click="
+								copyToClipboard(item.shortUrl || item.short)
+							"
+							class="action-btn copy"
+							title="Copy"
+						>
+							📋
+						</button>
+						<button
+							@click="deleteGuestUrl(index)"
+							class="action-btn delete"
+							title="Xóa"
+						>
+							🗑️
+						</button>
+					</div>
+				</li>
 			</ul>
 		</div>
 	</main>
@@ -256,33 +262,123 @@ const shortenUrl = async () => {
 <style scoped>
 /* Reset & Layout bọc ngoài */
 .home-wrapper {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: 2rem;
 	padding: 40px 20px;
 	min-height: 85vh;
-	font-family:
-		system-ui,
-		-apple-system,
-		sans-serif;
-	max-width: 500px;
-	margin: 0 auto;
-	transition: max-width 0.3s ease;
 }
 
-/* Biến hình thành Dashboard 2 cột khi User đã Logged In trên PC */
-@media (min-width: 992px) {
-	.home-wrapper.is-logged-in {
-		flex-direction: row;
-		align-items: flex-start;
-		max-width: 1100px;
+/* Styling for new recently shortened result box */
+.result-box-wrapper {
+	background: rgba(66, 97, 237, 0.05);
+	border: 1px solid rgba(66, 97, 237, 0.2);
+	border-radius: 12px;
+	padding: 16px;
+	margin-top: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.result-box-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.result-box-header h4 {
+	font-size: 14px;
+	font-weight: 700;
+	color: #1e293b;
+	margin: 0;
+}
+
+.btn-close-result {
+	background: none;
+	border: none;
+	color: #94a3b8;
+	font-size: 16px;
+	cursor: pointer;
+	line-height: 1;
+	padding: 2px;
+}
+
+.btn-close-result:hover {
+	color: #64748b;
+}
+
+.result-box-body {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.result-box-links {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+	flex: 1;
+}
+
+.result-short-url {
+	font-size: 16px;
+	font-weight: 700;
+	color: #2563eb;
+	text-decoration: none;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.result-short-url:hover {
+	text-decoration: underline;
+}
+
+.result-original-url {
+	font-size: 12px;
+	color: #94a3b8;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.btn-copy-result {
+	background: #2563eb;
+	color: white;
+	border: none;
+	padding: 8px 16px;
+	border-radius: 8px;
+	font-size: 13px;
+	font-weight: 700;
+	cursor: pointer;
+	transition:
+		background-color 0.2s,
+		transform 0.15s;
+	white-space: nowrap;
+}
+
+.btn-copy-result:hover {
+	background: #1d4ed8;
+	transform: translateY(-1px);
+}
+
+.btn-copy-result:active {
+	transform: translateY(0);
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
 	}
-	.home-wrapper.is-logged-in .home-main-card {
-		position: sticky;
-		top: 40px;
+	to {
+		opacity: 1;
+		transform: translateY(0);
 	}
+}
+
+.animate-fade-in {
+	animation: fadeIn 0.3s ease forwards;
 }
 
 /* Card chính chứa form input */
@@ -295,7 +391,6 @@ const shortenUrl = async () => {
 	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
 	border: 1px solid rgba(255, 255, 255, 0.5);
 	width: 100%;
-	flex: 1;
 }
 
 .home-title {
@@ -365,9 +460,6 @@ const shortenUrl = async () => {
 
 /* Nút Toggle tùy chọn nâng cao */
 .advanced-toggle {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
 	padding: 12px;
 	background: #f1f5f9;
 	border-radius: 8px;

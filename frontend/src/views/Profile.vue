@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
 import { useAuthStore } from "@/store/auth";
+import api from "@/api";
 
 const router = useRouter();
 
@@ -83,10 +84,19 @@ const handleChangePassword = async () => {
 };
 
 // Hàm phụ trợ: Format ngày tháng cho gọn đẹp (timezone-safe)
-// Backend luôn trả về ISO string UTC (có Z), parse và hiển thị theo giờ VN
+// Backend luôn trả về ISO string UTC (có Z) hoặc MySQL datetime string, parse và hiển thị theo giờ VN
 const formatDate = (dateStr) => {
 	if (!dateStr) return "";
-	const d = new Date(dateStr);
+	
+	let normalizedStr = dateStr;
+	if (typeof dateStr === "string" && !dateStr.includes("T")) {
+		normalizedStr = dateStr.replace(" ", "T");
+		if (!normalizedStr.endsWith("Z") && !normalizedStr.includes("+")) {
+			normalizedStr += "Z";
+		}
+	}
+	
+	const d = new Date(normalizedStr);
 	if (isNaN(d.getTime())) return "";
 	return d.toLocaleDateString("vi-VN", {
 		day: "2-digit",
@@ -105,6 +115,42 @@ const copyLink = (text) => {
 // Hàm xử lý click vào link đã hết hạn → navigate đến trang Expired
 const handleExpiredClick = () => {
 	router.push({ name: "Expired" });
+};
+
+// State cho chức năng Xoá Link
+const showDeleteModal = ref(false);
+const urlToDelete = ref(null);
+const isDeleting = ref(false);
+
+// Chuẩn bị xoá link (mở modal)
+const confirmDelete = (url) => {
+	urlToDelete.value = url;
+	showDeleteModal.value = true;
+};
+
+// Thực hiện gọi API xoá link
+const handleDeleteUrl = async () => {
+	if (!urlToDelete.value) return;
+
+	isDeleting.value = true;
+	try {
+		const res = await api.delete(`/v1/urls/${urlToDelete.value.id}`);
+		if (res.success) {
+			toast.success("Xoá liên kết thành công!");
+			// Refresh danh sách
+			await authStore.fetchProfile();
+		} else {
+			throw new Error(res.message || "Lỗi khi xoá liên kết");
+		}
+	} catch (err) {
+		const message = typeof err === "string" ? err : err?.message || "Có lỗi xảy ra khi xoá liên kết.";
+		toast.error(message);
+		console.error("Error deleting URL:", err);
+	} finally {
+		isDeleting.value = false;
+		showDeleteModal.value = false;
+		urlToDelete.value = null;
+	}
 };
 </script>
 <template>
@@ -253,6 +299,15 @@ const handleExpiredClick = () => {
 									>
 										📋
 									</button>
+									<button
+										@click="
+											confirmDelete(url)
+										"
+										class="btn-delete"
+										title="Xoá liên kết"
+									>
+										🗑️
+									</button>
 								</div>
 							</div>
 							<div class="url-meta">
@@ -273,12 +328,47 @@ const handleExpiredClick = () => {
 										>❌ ĐÃ HẾT HẠN</span
 									>
 								</span>
-								<span class="meta-clicks">
-									👆 {{ url.clicks || 0 }} lượt nhấn
-								</span>
+								<router-link
+									:to="`/analytics/${url.id}`"
+									class="meta-clicks clickable"
+									title="Xem thống kê chi tiết"
+								>
+									📊 {{ url.clicks || 0 }} lượt nhấn
+								</router-link>
 							</div>
 						</li>
 					</ul>
+				</div>
+			</div>
+		</div>
+
+		<!-- Modal xác nhận xoá link -->
+		<div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+			<div class="delete-modal-card">
+				<div class="delete-modal-header">
+					<h3>Xác nhận xoá liên kết</h3>
+					<button class="btn-close-modal" @click="showDeleteModal = false">&times;</button>
+				</div>
+				<div class="delete-modal-body">
+					<p>Bạn có chắc chắn muốn xoá liên kết này không? Hành động này sẽ xoá vĩnh viễn liên kết rút gọn cùng toàn bộ thống kê lượt nhấn và không thể hoàn tác.</p>
+					<div class="url-preview-box" v-if="urlToDelete">
+						<div class="preview-row">
+							<strong>Link gốc:</strong>
+							<span class="preview-text" :title="urlToDelete.originalUrl">{{ urlToDelete.originalUrl }}</span>
+						</div>
+						<div class="preview-row">
+							<strong>Link rút gọn:</strong>
+							<span class="preview-text highlight">{{ urlToDelete.shortUrl }}</span>
+						</div>
+					</div>
+				</div>
+				<div class="delete-modal-footer">
+					<button class="modal-btn btn-secondary" @click="showDeleteModal = false" :disabled="isDeleting">
+						Huỷ
+					</button>
+					<button class="modal-btn btn-danger" @click="handleDeleteUrl" :disabled="isDeleting">
+						{{ isDeleting ? "Đang xoá..." : "Xác nhận xoá" }}
+					</button>
 				</div>
 			</div>
 		</div>
@@ -290,7 +380,7 @@ const handleExpiredClick = () => {
 	padding: 40px 20px;
 	max-width: 1100px;
 	margin: 0 auto;
-	min-height: 85vh;
+	flex: 1;
 }
 
 .profile-grid {
@@ -584,6 +674,23 @@ const handleExpiredClick = () => {
 .meta-clicks {
 	color: #16a34a;
 	font-weight: 500;
+	text-decoration: none;
+}
+
+.meta-clicks.clickable {
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 6px;
+	border-radius: 6px;
+	transition: background-color 0.2s, color 0.2s;
+}
+
+.meta-clicks.clickable:hover {
+	background-color: rgba(22, 163, 74, 0.08);
+	color: #15803d;
+	text-decoration: underline;
 }
 
 /* Mobile responsive */
@@ -594,6 +701,191 @@ const handleExpiredClick = () => {
 	.profile-sidebar,
 	.profile-main {
 		width: 100%;
+	}
+}
+
+/* Button Delete Style */
+.btn-delete {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: 14px;
+	padding: 2px;
+	opacity: 0.7;
+	transition: opacity 0.2s, transform 0.2s;
+}
+
+.btn-delete:hover {
+	opacity: 1;
+	transform: scale(1.15);
+}
+
+/* Modal Overlay styling with blur */
+.modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(15, 23, 42, 0.4);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+	animation: fadeIn 0.25s ease-out;
+}
+
+/* Modal Card with premium glassmorphism */
+.delete-modal-card {
+	background: rgba(255, 255, 255, 0.85);
+	backdrop-filter: blur(20px);
+	-webkit-backdrop-filter: blur(20px);
+	border: 1px solid rgba(255, 255, 255, 0.6);
+	box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+	border-radius: 16px;
+	width: 90%;
+	max-width: 500px;
+	overflow: hidden;
+	animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.delete-modal-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20px 24px;
+	border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.delete-modal-header h3 {
+	margin: 0;
+	font-size: 18px;
+	color: #0f172a;
+	font-weight: 700;
+}
+
+.btn-close-modal {
+	background: none;
+	border: none;
+	font-size: 24px;
+	color: #64748b;
+	cursor: pointer;
+	transition: color 0.2s;
+	line-height: 1;
+}
+
+.btn-close-modal:hover {
+	color: #0f172a;
+}
+
+.delete-modal-body {
+	padding: 20px 24px;
+	color: #475569;
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+.url-preview-box {
+	background: rgba(241, 245, 249, 0.6);
+	border: 1px solid rgba(226, 232, 240, 0.8);
+	border-radius: 10px;
+	padding: 14px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.preview-row {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.preview-row strong {
+	font-size: 11px;
+	text-transform: uppercase;
+	color: #94a3b8;
+	letter-spacing: 0.05em;
+}
+
+.preview-text {
+	font-size: 13px;
+	color: #334155;
+	word-break: break-all;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.preview-text.highlight {
+	color: #4261ed;
+	font-weight: 600;
+}
+
+.delete-modal-footer {
+	display: flex;
+	justify-content: flex-end;
+	gap: 12px;
+	padding: 16px 24px 24px;
+	border-top: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.modal-btn {
+	padding: 10px 18px;
+	font-size: 14px;
+	font-weight: 600;
+	border-radius: 10px;
+	cursor: pointer;
+	border: none;
+	transition: all 0.2s ease;
+}
+
+.modal-btn.btn-secondary {
+	background: #f1f5f9;
+	color: #475569;
+}
+
+.modal-btn.btn-secondary:hover:not(:disabled) {
+	background: #e2e8f0;
+	color: #0f172a;
+}
+
+.modal-btn.btn-danger {
+	background: #ef4444;
+	color: white;
+	box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+}
+
+.modal-btn.btn-danger:hover:not(:disabled) {
+	background: #dc2626;
+	box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+}
+
+.modal-btn:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+/* Animations */
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes scaleUp {
+	from {
+		opacity: 0;
+		transform: scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
 	}
 }
 </style>

@@ -7,12 +7,13 @@ const cors = require("cors");
 const { logger } = require("./utils/logger");
 const { notFound } = require("./utils/errors");
 const { HEADERS } = require("./config/constants");
-const { errorHandler } = require("./middleware");
+const { auth, authorize, errorHandler } = require("./middleware");
 const { initializeDatabase } = require("./database/init");
 
 const authRoutes = require("./routes/auth.routes");
 const urlRoutes = require("./routes/url.routes");
 const analyticsRoutes = require("./routes/analytics.routes");
+const adminRoutes = require("./routes/admin.routes");
 const { redirect } = require("./controllers/url.controller");
 
 const app = express();
@@ -67,6 +68,9 @@ app.use("/api/v1/urls", urlRoutes);
 
 // Analytics APIs
 app.use("/api/v1/analytics", analyticsRoutes);
+
+// Admin APIs
+app.use("/api/v1/admin", auth, authorize("admin"), adminRoutes);
 
 // Redirect từ short code sang URL gốc
 app.get("/:code", redirect);

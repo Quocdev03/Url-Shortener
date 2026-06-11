@@ -5,6 +5,8 @@ import Login from "../views/Login.vue";
 import Register from "../views/Register.vue";
 import Profile from "../views/Profile.vue";
 import Expired from "../components/Expired.vue";
+import Analytics from "../views/Analytics.vue";
+import AdminDashboard from "../views/AdminDashboard.vue";
 
 const routes = [
 	{
@@ -31,6 +33,18 @@ const routes = [
 		meta: { requiresAuth: true },
 	},
 	{
+		path: "/analytics/:id?",
+		name: "Analytics",
+		component: Analytics,
+		meta: { requiresAuth: true },
+	},
+	{
+		path: "/admin",
+		name: "AdminDashboard",
+		component: AdminDashboard,
+		meta: { requiresAuth: true, requiresAdmin: true },
+	},
+	{
 		path: "/expired",
 		name: "Expired",
 		component: Expired,
@@ -47,8 +61,21 @@ router.beforeEach((to, from, next) => {
 	const authStore = useAuthStore();
 	const isAuthenticated = authStore.isAuthenticated;
 
+	// Nếu route yêu cầu admin
+	if (to.meta.requiresAdmin) {
+		if (!isAuthenticated) {
+			next({
+				name: "Login",
+				query: { redirect: to.fullPath },
+			});
+		} else if (authStore.user?.role !== "admin") {
+			next("/"); // Redirect về Home nếu không phải admin
+		} else {
+			next();
+		}
+	}
 	// Nếu route yêu cầu authentication
-	if (to.meta.requiresAuth) {
+	else if (to.meta.requiresAuth) {
 		if (!isAuthenticated) {
 			// Redirect về login
 			next({

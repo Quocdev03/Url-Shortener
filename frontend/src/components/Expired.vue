@@ -48,7 +48,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* Toàn bộ không gian bao bọc */
 .expired-wrapper {
 	display: flex;
 	flex-direction: column;
@@ -56,10 +55,6 @@ onUnmounted(() => {
 	justify-content: center;
 	padding: 40px 20px;
 	min-height: 80vh;
-	font-family:
-		system-ui,
-		-apple-system,
-		sans-serif;
 	max-width: 480px;
 	margin: 0 auto;
 	box-sizing: border-box;

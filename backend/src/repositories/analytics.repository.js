@@ -41,16 +41,21 @@ async function getUrlAnalytics(urlId, limit = 10) {
 
 /**
  * Đếm tổng số analytics records theo điều kiện
- * @param {Object} options - {search, urlId}
+ * @param {Object} options - {search, urlId, userId}
  * @returns {Promise<number>} - Tổng số records
  */
-async function countAnalyticsByQuery({ search, urlId }) {
+async function countAnalyticsByQuery({ search, urlId, userId }) {
 	const conditions = [];
 	const values = [];
 
 	if (urlId !== undefined) {
 		conditions.push("a.url_id = ?");
 		values.push(urlId);
+	}
+
+	if (userId !== undefined) {
+		conditions.push("u.user_id = ?");
+		values.push(userId);
 	}
 
 	if (search) {
@@ -92,12 +97,13 @@ async function getClickCountsByUserId(userId) {
 
 /**
  * Lấy danh sách analytics với lọc, tìm kiếm, sắp xếp, phân trang
- * @param {Object} options - {search, urlId, sortBy, order, offset, limit}
+ * @param {Object} options - {search, urlId, userId, sortBy, order, offset, limit}
  * @returns {Promise<Array>} - Mảng analytics records
  */
 async function getAllAnalytics({
 	search,
 	urlId,
+	userId,
 	sortBy = "clicked_at",
 	order = "DESC",
 	offset = 0,
@@ -109,6 +115,11 @@ async function getAllAnalytics({
 	if (urlId !== undefined) {
 		conditions.push("a.url_id = ?");
 		values.push(urlId);
+	}
+
+	if (userId !== undefined) {
+		conditions.push("u.user_id = ?");
+		values.push(userId);
 	}
 
 	if (search) {
@@ -127,12 +138,14 @@ async function getAllAnalytics({
 			a.url_id AS urlId,
 			u.code,
 			u.original AS originalUrl,
+			usr.email AS userEmail,
 			a.ip,
 			a.user_agent AS userAgent,
 			a.referer,
 			a.clicked_at AS clickedAt
 		FROM analytics a
 		LEFT JOIN urls u ON a.url_id = u.id
+		LEFT JOIN users usr ON u.user_id = usr.id
 		${where}
 		ORDER BY a.${safeSortBy} ${direction}
 		LIMIT ? OFFSET ?

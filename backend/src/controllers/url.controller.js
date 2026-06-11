@@ -202,6 +202,8 @@ const getStats = async (req, res, next) => {
 const getAnalytics = async (req, res, next) => {
 	try {
 		const { page, limit, search, sortBy, order, urlId } = req.query;
+		const isAdmin = req.user.role === "admin";
+		const userId = req.user.userId;
 
 		const analytics = await analyticsService.getAnalytics({
 			page: Number(page) || 1,
@@ -210,6 +212,7 @@ const getAnalytics = async (req, res, next) => {
 			sortBy,
 			order,
 			urlId: urlId ? Number(urlId) : undefined,
+			userId: isAdmin ? undefined : userId,
 		});
 
 		const response = formatAnalyticsResponse(analytics.items, analytics.meta);

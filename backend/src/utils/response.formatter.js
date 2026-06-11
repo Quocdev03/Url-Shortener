@@ -106,7 +106,6 @@ function formatStatsResponse(stats, baseUrl) {
 		...formatUrlResponse(stats.url, baseUrl),
 		analytics: {
 			totalClicks: stats.totalClicks,
-			cacheClicks: stats.cacheClicks,
 			recentClicks: stats.recentClicks,
 		},
 	});

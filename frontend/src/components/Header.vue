@@ -25,6 +25,20 @@ const handleProfileClick = () => {
 				<img :src="logo" alt="" />
 			</router-link>
 		</div>
+
+		<!-- Menu điều hướng chính khi đã đăng nhập -->
+		<nav v-if="authStore.isAuthenticated" class="header-nav">
+			<router-link to="/" class="nav-link" exact-active-class="active">
+				Trang chủ
+			</router-link>
+			<router-link to="/analytics" class="nav-link" active-class="active">
+				Thống kê
+			</router-link>
+			<router-link v-if="authStore.user?.role === 'admin'" to="/admin" class="nav-link" active-class="active">
+				Quản trị
+			</router-link>
+		</nav>
+
 		<div class="header-auth">
 			<div
 				v-if="!authStore.isAuthenticated"
@@ -39,14 +53,10 @@ const handleProfileClick = () => {
 			</div>
 			<!-- Đã đăng nhập -->
 			<div v-else class="header-authenticated">
-				<span class="user-email">{{ authStore.user?.email }}</span>
-				<button
-					@click="handleProfileClick"
-					class="header-avatar"
-					title="View Profile"
-				>
-					<img :srcset="`${avatar} 2x`" alt="Avatar" />
-				</button>
+				<div @click="handleProfileClick" class="user-profile-pill" title="Trang cá nhân">
+					<img :srcset="`${avatar} 2x`" alt="Avatar" class="user-avatar-img" />
+					<span class="user-email-text">{{ authStore.user?.email }}</span>
+				</div>
 				<button @click="handleLogout" class="btn btn-outline">
 					Logout
 				</button>
@@ -97,44 +107,104 @@ const handleProfileClick = () => {
 	gap: 15px;
 }
 
-.user-email {
-	font-size: 14px;
+/* Navigation Menu */
+.header-nav {
+	display: flex;
+	align-items: center;
+	gap: 20px;
+}
+
+.nav-link {
+	font-size: 15px;
+	font-weight: 600;
 	color: #64748b;
-	max-width: 150px;
+	text-decoration: none;
+	padding: 8px 16px;
+	border-radius: 12px;
+	transition: all 0.25s ease;
+}
+
+.nav-link:hover {
+	color: #0f172a;
+	background: rgba(15, 23, 42, 0.04);
+}
+
+.nav-link.active {
+	color: #4261ed;
+	background: rgba(66, 97, 237, 0.08);
+}
+
+/* User Profile Badge Capsule */
+.user-profile-pill {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 6px 14px 6px 6px;
+	background: rgba(255, 255, 255, 0.65);
+	border: 1px solid rgba(226, 232, 240, 0.8);
+	border-radius: 30px;
+	cursor: pointer;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.user-profile-pill:hover {
+	background: rgba(255, 255, 255, 0.95);
+	border-color: rgba(66, 97, 237, 0.4);
+	box-shadow: 0 4px 12px rgba(66, 97, 237, 0.08);
+	transform: translateY(-1px);
+}
+
+.user-avatar-img {
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	object-fit: cover;
+	border: 2px solid white;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.user-email-text {
+	font-size: 13px;
+	font-weight: 600;
+	color: #475569;
+	max-width: 140px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	transition: color 0.3s ease;
 }
 
-.header-avatar {
-	width: 40px;
-	height: 40px;
-	flex-shrink: 0;
-	cursor: pointer;
-	border: none;
-	background: none;
-	padding: 0;
-	border-radius: 50%;
-	transition:
-		transform 0.2s ease,
-		box-shadow 0.2s ease;
+.user-profile-pill:hover .user-email-text {
+	color: #0f172a;
 }
 
-.header-avatar:hover {
-	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-}
-
-.header-avatar img {
-	width: 100%;
-	height: 100%;
-	border-radius: 50%;
-	object-fit: cover;
-}
-@media screen and (max-width: 767.98px) {
-	.user-email {
+/* Mobile responsive styles */
+@media screen and (max-width: 768px) {
+	.header-main {
+		padding: 15px 20px;
+	}
+	.user-email-text {
 		display: none;
 	}
+	.user-profile-pill {
+		padding: 4px;
+	}
+	.header-nav {
+		gap: 8px;
+	}
+	.nav-link {
+		padding: 6px 12px;
+		font-size: 14px;
+	}
 }
-@media screen and (max-width: 374.98px) {
+
+@media screen and (max-width: 480px) {
+	.nav-link:first-child {
+		display: none; /* Hide 'Trang chủ' since logo links to '/' */
+	}
+	.header-nav {
+		gap: 4px;
+	}
 }
 </style>

@@ -22,6 +22,8 @@
 	-webkit-backdrop-filter: blur(12px);
 	border-top: 1px solid rgba(226, 232, 240, 0.6);
 	padding: 20px 0;
+	position: relative;
+	bottom: 0;
 }
 
 .footer-container {

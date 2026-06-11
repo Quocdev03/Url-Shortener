@@ -57,6 +57,7 @@ async function getAnalytics({
 	sortBy,
 	order,
 	urlId,
+	userId,
 }) {
 	const offset =
 		(Number(page) > 0 ? Number(page) - 1 : 0) * Number(limit || 20);
@@ -64,11 +65,13 @@ async function getAnalytics({
 	const total = await analyticsRepository.countAnalyticsByQuery({
 		search,
 		urlId,
+		userId,
 	});
 
 	const items = await analyticsRepository.getAllAnalytics({
 		search,
 		urlId,
+		userId,
 		sortBy,
 		order,
 		offset,
