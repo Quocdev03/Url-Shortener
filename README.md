@@ -10,6 +10,30 @@ Full-stack URL shortening application với xác thực JWT, phân quyền, Redi
 
 ---
 
+## 📸 Hình ảnh giao diện
+
+| Đăng Nhập | Đăng Ký |
+| :--- | :--- |
+| ![Login](reviews/login.png) | ![Register](reviews/register.png) |
+
+| Rút gọn liên kết (Khách) | Rút gọn liên kết (Thành viên) |
+| :--- | :--- |
+| ![Public URL](reviews/url_public.png) | ![Authenticated URL](reviews/url_auth.png) |
+
+| Kho Link Cá Nhân | Báo Lỗi Hết Hạn |
+| :--- | :--- |
+| ![Profile](reviews/profile.png) | ![Expired URL](reviews/urlexpired.png) |
+
+| Thống Kê Phân Tích |
+| :--- |
+| ![Analytics](reviews/analytics.png) |
+
+| Quản trị Người dùng | Quản trị URL |
+| :--- | :--- |
+| ![Admin Users](reviews/administration_user.png) | ![Admin URLs](reviews/administration_url.png) |
+
+---
+
 ## ⭐ Tính năng
 
 - **URL rút gọn** — Hỗ trợ public (temporary) và authenticated (persistent) URLs
@@ -78,7 +102,7 @@ Khi khởi động, database tự động seed 2 tài khoản:
 
 ## 🏗️ Kiến trúc
 
-```
+```text
 Request
    ↓
 [Middleware: Auth · Rate Limit]
@@ -94,64 +118,30 @@ Request
 
 ### Cấu trúc project
 
-```
+```text
 url-shortener/
 ├── backend/                    # Express.js API
 │   ├── src/
-│   │   ├── app.js
 │   │   ├── config/
 │   │   ├── controllers/
-│   │   │   ├── auth.controller.js
-│   │   │   └── url.controller.js
 │   │   ├── database/
-│   │   │   ├── init.js
-│   │   │   └── schema.sql
 │   │   ├── middleware/
 │   │   ├── repositories/
-│   │   │   ├── analytics.repository.js
-│   │   │   ├── user.repository.js
-│   │   │   └── url.repository.js
 │   │   ├── routes/
-│   │   │   ├── analytics.routes.js
-│   │   │   ├── auth.routes.js
-│   │   │   └── url.routes.js
 │   │   ├── services/
-│   │   │   ├── analytics.service.js
-│   │   │   ├── auth.service.js
-│   │   │   ├── cache.service.js
-│   │   │   └── url.service.js
 │   │   └── utils/
 │   ├── Dockerfile
 │   └── package.json
 ├── frontend/                   # Vue 3 + Vite
 │   ├── src/
-│   │   ├── App.vue
-│   │   ├── main.js
-│   │   ├── style.css
 │   │   ├── api/
-│   │   │   └── index.js        # Axios instance + interceptors
 │   │   ├── assets/
 │   │   ├── components/
-│   │   │   ├── Expired.vue
-│   │   │   ├── Footer.vue
-│   │   │   └── Header.vue
 │   │   ├── router/
-│   │   │   └── index.js
 │   │   ├── store/
-│   │   │   ├── analytics.js    # Pinia: click logs + filters
-│   │   │   ├── auth.js         # Pinia: user session, profile
-│   │   │   ├── url.js          # Pinia: URL creation
-│   │   │   └── user.js
 │   │   ├── utils/
-│   │   │   └── uaParser.js     # Client-side UA parser
 │   │   └── views/
-│   │       ├── Analytics.vue   # Dashboard thống kê
-│   │       ├── Home.vue
-│   │       ├── Login.vue
-│   │       ├── Profile.vue     # Kho link + đổi mật khẩu
-│   │       └── Register.vue
 │   ├── Dockerfile
-│   ├── index.html
 │   ├── package.json
 │   └── vite.config.js
 ├── docker-compose.yml
@@ -199,7 +189,7 @@ REFRESH_TOKEN_EXPIRES_IN=30d
 
 ### Password Hashing
 
-```
+```text
 password + PASSWORD_PEPPER  →  bcrypt.hash(12 rounds)  →  lưu vào DB
 ```
 
@@ -275,13 +265,13 @@ Pepper không lưu trong DB, tăng độ phức tạp brute-force và giảm ngu
 
 ```json
 {
-	"success": true,
-	"data": {
-		"accessToken": "eyJ...",
-		"refreshToken": "eyJ...",
-		"tokenType": "Bearer",
-		"expiresIn": "7d"
-	}
+  "success": true,
+  "data": {
+    "accessToken": "eyJ...",
+    "refreshToken": "eyJ...",
+    "tokenType": "Bearer",
+    "expiresIn": "7d"
+  }
 }
 ```
 
@@ -291,28 +281,28 @@ Bao gồm danh sách URLs của user kèm `clicks` và `isExpired`:
 
 ```json
 {
-	"success": true,
-	"data": {
-		"user": {
-			"id": 3,
-			"email": "user@example.com",
-			"role": "user",
-			"createdAt": "2026-06-09T14:44:19.000Z",
-			"urls": [
-				{
-					"id": 5,
-					"code": "gh",
-					"shortUrl": "http://localhost:3001/gh",
-					"originalUrl": "https://github.com",
-					"customAlias": "gh",
-					"expiresAt": "2026-12-31T23:59:59.000Z",
-					"createdAt": "2026-06-10T10:00:00.000Z",
-					"clicks": 42,
-					"isExpired": false
-				}
-			]
-		}
-	}
+  "success": true,
+  "data": {
+    "user": {
+      "id": 3,
+      "email": "user@example.com",
+      "role": "user",
+      "createdAt": "2026-06-09T14:44:19.000Z",
+      "urls": [
+        {
+          "id": 5,
+          "code": "gh",
+          "shortUrl": "http://localhost:3001/gh",
+          "originalUrl": "https://github.com",
+          "customAlias": "gh",
+          "expiresAt": "2026-12-31T23:59:59.000Z",
+          "createdAt": "2026-06-10T10:00:00.000Z",
+          "clicks": 42,
+          "isExpired": false
+        }
+      ]
+    }
+  }
 }
 ```
 
@@ -350,9 +340,9 @@ Authorization: Bearer <ACCESS_TOKEN>
 
 ```json
 {
-	"originalUrl": "https://github.com",
-	"customAlias": "gh",
-	"expiresAt": "2026-12-31T23:59:59Z"
+  "originalUrl": "https://github.com",
+  "customAlias": "gh",
+  "expiresAt": "2026-12-31T23:59:59Z"
 }
 ```
 
@@ -360,7 +350,7 @@ Authorization: Bearer <ACCESS_TOKEN>
 
 #### Redirect (Public)
 
-```
+```text
 GET /:code  →  302 Found  →  Original URL
 ```
 
@@ -374,7 +364,7 @@ GET /:code  →  302 Found  →  Original URL
 
 ### 📊 Analytics
 
-```
+```text
 GET /analytics
 Authorization: Bearer <ACCESS_TOKEN>
 ```
@@ -386,21 +376,21 @@ Authorization: Bearer <ACCESS_TOKEN>
 
 ```json
 {
-	"success": true,
-	"data": [
-		{
-			"id": 1,
-			"urlId": 5,
-			"code": "gh",
-			"original": "https://github.com",
-			"userEmail": "user@example.com",
-			"ip": "1.2.3.4",
-			"userAgent": "Mozilla/5.0...",
-			"referer": "twitter.com",
-			"clickedAt": "2026-06-10T10:30:00.000Z"
-		}
-	],
-	"meta": { "page": 1, "limit": 20, "total": 100, "totalPages": 5 }
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "urlId": 5,
+      "code": "gh",
+      "original": "https://github.com",
+      "userEmail": "user@example.com",
+      "ip": "1.2.3.4",
+      "userAgent": "Mozilla/5.0...",
+      "referer": "twitter.com",
+      "clickedAt": "2026-06-10T10:30:00.000Z"
+    }
+  ],
+  "meta": { "page": 1, "limit": 20, "total": 100, "totalPages": 5 }
 }
 ```
 

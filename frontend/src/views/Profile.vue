@@ -1,9 +1,23 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
 import { useAuthStore } from "@/store/auth";
 import api from "@/api";
+import {
+	User,
+	ShieldCheck,
+	Clock,
+	BarChart3,
+	Copy,
+	Trash2,
+	XCircle,
+	Eye,
+	EyeOff,
+	Link2,
+	AlertCircle,
+	TimerOff
+} from "@lucide/vue";
 
 const router = useRouter();
 
@@ -17,14 +31,18 @@ const isUpdating = ref(false);
 const pwdMessage = ref("");
 const isSuccess = ref(false);
 
+const showOldPassword = ref(false);
+const showNewPassword = ref(false);
+const showConfirmNewPassword = ref(false);
+
 // Computed properties từ store
 const profileData = computed(() => ({
 	user: authStore.userProfile?.user,
 }));
 const isLoading = computed(() => authStore.loadingState);
 
-// Gọi API lấy Profile khi component được mount
-onMounted(async () => {
+// Gọi API lấy Profile ngay khi component được khởi tạo
+const loadProfileData = async () => {
 	try {
 		await authStore.fetchProfile();
 	} catch (err) {
@@ -32,7 +50,8 @@ onMounted(async () => {
 		toast.error(message);
 		console.error("Error fetching profile:", err);
 	}
-});
+};
+loadProfileData();
 
 // Xử lý đổi mật khẩu
 const handleChangePassword = async () => {
@@ -176,11 +195,12 @@ const handleDeleteUrl = async () => {
 								`role-${profileData?.user?.role}`,
 							]"
 						>
-							{{
-								profileData?.user?.role === "admin"
-									? "⚡ Administrator"
-									: "👤 Member"
-							}}
+							<template v-if="profileData?.user?.role === 'admin'">
+								<ShieldCheck :size="14" style="display: inline-block; vertical-align: middle; margin-right: 4px;" /> Administrator
+							</template>
+							<template v-else>
+								<User :size="14" style="display: inline-block; vertical-align: middle; margin-right: 4px;" /> Member
+							</template>
 						</span>
 					</div>
 
@@ -189,26 +209,53 @@ const handleDeleteUrl = async () => {
 					<div class="change-password-form">
 						<h3>Đổi mật khẩu</h3>
 
-						<div class="auth-input">
+						<div class="auth-input password-input-wrapper">
 							<input
-								type="password"
+								:type="showOldPassword ? 'text' : 'password'"
 								v-model="oldPassword"
 								placeholder="Mật khẩu hiện tại"
 							/>
+							<button
+								type="button"
+								class="password-toggle-btn"
+								@click="showOldPassword = !showOldPassword"
+								title="Ẩn/Hiện mật khẩu"
+							>
+								<Eye v-if="!showOldPassword" :size="18" />
+								<EyeOff v-else :size="18" />
+							</button>
 						</div>
-						<div class="auth-input">
+						<div class="auth-input password-input-wrapper">
 							<input
-								type="password"
+								:type="showNewPassword ? 'text' : 'password'"
 								v-model="newPassword"
 								placeholder="Mật khẩu mới"
 							/>
+							<button
+								type="button"
+								class="password-toggle-btn"
+								@click="showNewPassword = !showNewPassword"
+								title="Ẩn/Hiện mật khẩu"
+							>
+								<Eye v-if="!showNewPassword" :size="18" />
+								<EyeOff v-else :size="18" />
+							</button>
 						</div>
-						<div class="auth-input">
+						<div class="auth-input password-input-wrapper">
 							<input
-								type="password"
+								:type="showConfirmNewPassword ? 'text' : 'password'"
 								v-model="confirmNewPassword"
 								placeholder="Xác nhận mật khẩu mới"
 							/>
+							<button
+								type="button"
+								class="password-toggle-btn"
+								@click="showConfirmNewPassword = !showConfirmNewPassword"
+								title="Ẩn/Hiện mật khẩu"
+							>
+								<Eye v-if="!showConfirmNewPassword" :size="18" />
+								<EyeOff v-else :size="18" />
+							</button>
 						</div>
 
 						<p
@@ -253,7 +300,8 @@ const handleDeleteUrl = async () => {
 						v-if="!profileData?.user?.urls?.length"
 						class="empty-state"
 					>
-						📌 Bạn chưa tạo link rút gọn nào.
+						<Link2 :size="18" style="display:inline-block;vertical-align:middle;margin-right:6px;" />
+						Bạn chưa tạo link rút gọn nào.
 						<router-link to="/">Tạo ngay!</router-link>
 					</div>
 
@@ -291,29 +339,26 @@ const handleDeleteUrl = async () => {
 										{{ url.shortUrl }}
 									</span>
 									<button
-										@click="
-											copyLink(url.shortUrl)
-										"
+										@click="copyLink(url.shortUrl)"
 										class="btn-copy"
 										title="Copy link"
 									>
-										📋
+										<Copy :size="15" />
 									</button>
 									<button
-										@click="
-											confirmDelete(url)
-										"
+										@click="confirmDelete(url)"
 										class="btn-delete"
 										title="Xoá liên kết"
 									>
-										🗑️
+										<Trash2 :size="15" />
 									</button>
 								</div>
 							</div>
 							<div class="url-meta">
-								<span class="meta-date"
-									>🕒 {{ formatDate(url.createdAt) }}</span
-								>
+								<span class="meta-date">
+									<Clock :size="12" style="display:inline-block;vertical-align:middle;margin-right:3px;" />
+									{{ formatDate(url.createdAt) }}
+								</span>
 								<span
 									v-if="url.expiresAt"
 									:class="[
@@ -321,19 +366,23 @@ const handleDeleteUrl = async () => {
 										{ 'expired-badge': url.isExpired },
 									]"
 								>
-									⏳ Hết hạn: {{ formatDate(url.expiresAt) }}
+									<TimerOff :size="12" style="display:inline-block;vertical-align:middle;margin-right:3px;" />
+									Hết hạn: {{ formatDate(url.expiresAt) }}
 									<span
 										v-if="url.isExpired"
 										class="expired-tag"
-										>❌ ĐÃ HẾT HẠN</span
 									>
+										<XCircle :size="10" style="display:inline-block;vertical-align:middle;margin-right:2px;" />
+										ĐÃ HẾT HẠN
+									</span>
 								</span>
 								<router-link
 									:to="`/analytics/${url.id}`"
 									class="meta-clicks clickable"
 									title="Xem thống kê chi tiết"
 								>
-									📊 {{ url.clicks || 0 }} lượt nhấn
+									<BarChart3 :size="12" style="display:inline-block;vertical-align:middle;margin-right:3px;" />
+									{{ url.clicks || 0 }} lượt nhấn
 								</router-link>
 							</div>
 						</li>
@@ -346,7 +395,10 @@ const handleDeleteUrl = async () => {
 		<div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
 			<div class="delete-modal-card">
 				<div class="delete-modal-header">
-					<h3>Xác nhận xoá liên kết</h3>
+					<h3>
+						<AlertCircle :size="20" style="display: inline-block; vertical-align: middle; margin-right: 6px; color: #dc2626;" />
+						Xác nhận xoá liên kết
+					</h3>
 					<button class="btn-close-modal" @click="showDeleteModal = false">&times;</button>
 				</div>
 				<div class="delete-modal-body">
@@ -377,10 +429,7 @@ const handleDeleteUrl = async () => {
 
 <style scoped>
 .profile {
-	padding: 40px 20px;
-	max-width: 1100px;
-	margin: 0 auto;
-	flex: 1;
+	width: 100%;
 }
 
 .profile-grid {
@@ -807,7 +856,6 @@ const handleDeleteUrl = async () => {
 	font-size: 11px;
 	text-transform: uppercase;
 	color: #94a3b8;
-	letter-spacing: 0.05em;
 }
 
 .preview-text {

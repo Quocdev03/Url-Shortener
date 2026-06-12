@@ -1,10 +1,29 @@
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { toast } from "vue3-toastify";
 import { useAuthStore } from "@/store/auth";
 import { useAnalyticsStore } from "@/store/analytics";
+import {
+	ArrowLeft,
+	BarChart3,
+	RefreshCw,
+	MousePointerClick,
+	Link2,
+	Zap,
+	Monitor,
+	Smartphone,
+	Tablet,
+	Tv,
+	Terminal,
+	Share2,
+	Trophy,
+	ChevronRight,
+	History,
+	ChevronLeft,
+	Globe
+} from "@lucide/vue";
 import { parseUA, formatReferer } from "../utils/uaParser";
 
 const route = useRoute();
@@ -180,11 +199,12 @@ watch(currentPage, () => {
 	fetchLogs();
 });
 
-onMounted(async () => {
+const loadAnalyticsData = async () => {
 	await loadProfile();
 	fetchLogs();
 	fetchStatsLogs();
-});
+};
+loadAnalyticsData();
 
 // Actions
 const refreshAll = () => {
@@ -227,10 +247,10 @@ const selectSpecificUrl = (id) => {
 		<!-- Header & Controls -->
 		<div class="analytics-header">
 			<div class="title-group">
-				<router-link to="/profile" class="btn-back"
-					><span class="back-arrow">←</span> Quay lại Kho
-					Link</router-link
-				>
+				<router-link to="/profile" class="btn-back">
+					<ArrowLeft :size="14" style="display:inline-block;vertical-align:middle;margin-right:4px;" />
+					Quay lại Kho Link
+				</router-link>
 				<h1 class="gradient-text">Phân Tích Thống Kê</h1>
 				<p class="subtitle">
 					Theo dõi chi tiết lưu lượng truy cập và hành vi người dùng
@@ -241,7 +261,7 @@ const selectSpecificUrl = (id) => {
 				<!-- Dropdown chọn link -->
 				<div class="select-wrapper glass">
 					<select v-model="selectedUrlId" class="url-selector">
-						<option value="">📊 Tất cả các liên kết</option>
+						<option value="">Tất cả các liên kết</option>
 						<option
 							v-for="url in urlsList"
 							:key="url.id"
@@ -260,7 +280,7 @@ const selectSpecificUrl = (id) => {
 					@click="refreshAll"
 					title="Làm mới dữ liệu"
 				>
-					<span class="refresh-icon">🔄</span>
+					<RefreshCw :size="16" style="vertical-align: middle;" />
 				</button>
 			</div>
 		</div>
@@ -268,28 +288,36 @@ const selectSpecificUrl = (id) => {
 		<!-- Thống kê KPIs -->
 		<div class="kpi-grid">
 			<div class="kpi-card glass">
-				<div class="kpi-icon clicks">🖱️</div>
+				<div class="kpi-icon clicks">
+					<MousePointerClick :size="20" style="color:#2563eb;" />
+				</div>
 				<div class="kpi-content">
 					<span class="kpi-label">Tổng lượt click</span>
 					<h3 class="kpi-value">{{ kpis.totalClicks }}</h3>
 				</div>
 			</div>
 			<div class="kpi-card glass">
-				<div class="kpi-icon links">🔗</div>
+				<div class="kpi-icon links">
+					<Link2 :size="20" style="color:#0ea5e9;" />
+				</div>
 				<div class="kpi-content">
 					<span class="kpi-label">Tổng số liên kết</span>
 					<h3 class="kpi-value">{{ kpis.totalLinks }}</h3>
 				</div>
 			</div>
 			<div class="kpi-card glass">
-				<div class="kpi-icon active">⚡</div>
+				<div class="kpi-icon active">
+					<Zap :size="20" style="color:#eab308;" />
+				</div>
 				<div class="kpi-content">
 					<span class="kpi-label">Liên kết đang hoạt động</span>
 					<h3 class="kpi-value">{{ kpis.activeLinks }}</h3>
 				</div>
 			</div>
 			<div class="kpi-card glass">
-				<div class="kpi-icon average">📊</div>
+				<div class="kpi-icon average">
+					<BarChart3 :size="20" style="color:#10b981;" />
+				</div>
 				<div class="kpi-content">
 					<span class="kpi-label">Clicks trung bình</span>
 					<h3 class="kpi-value">
@@ -304,7 +332,10 @@ const selectSpecificUrl = (id) => {
 		<div class="charts-grid">
 			<!-- Device Breakdown -->
 			<div class="chart-card glass">
-				<h3>💻 Phân bố thiết bị</h3>
+				<h3>
+					<Monitor :size="16" style="display:inline-block;vertical-align:middle;margin-right:6px;color:#2563eb;" />
+					Phân bố thiết bị
+				</h3>
 				<div class="chart-content" v-if="statsLogs.length">
 					<div class="device-summary">
 						<div
@@ -314,13 +345,15 @@ const selectSpecificUrl = (id) => {
 						>
 							<div class="device-info">
 								<span class="device-icon">
-									{{
-										item.name === "Desktop"
-											? "🖥️"
-											: item.name === "Mobile"
-												? "📱"
-												: "📟"
-									}}
+									<template v-if="item.name === 'Desktop'">
+										<Monitor :size="16" style="display:inline-block;vertical-align:middle;margin-right:4px;" />
+									</template>
+									<template v-else-if="item.name === 'Mobile'">
+										<Smartphone :size="16" style="display:inline-block;vertical-align:middle;margin-right:4px;" />
+									</template>
+									<template v-else>
+										<Tablet :size="16" style="display:inline-block;vertical-align:middle;margin-right:4px;" />
+									</template>
 								</span>
 								<span class="device-name">{{ item.name }}</span>
 								<span class="device-count"
@@ -345,7 +378,10 @@ const selectSpecificUrl = (id) => {
 
 			<!-- Browser Breakdown -->
 			<div class="chart-card glass">
-				<h3>🌐 Trình duyệt sử dụng</h3>
+				<h3>
+					<Globe :size="16" style="display:inline-block;vertical-align:middle;margin-right:6px;color:#eab308;" />
+					Trình duyệt sử dụng
+				</h3>
 				<div class="chart-content" v-if="statsLogs.length">
 					<div class="distribution-list">
 						<div
@@ -373,7 +409,10 @@ const selectSpecificUrl = (id) => {
 
 			<!-- OS Breakdown -->
 			<div class="chart-card glass">
-				<h3>💿 Hệ điều hành</h3>
+				<h3>
+					<Terminal :size="16" style="display:inline-block;vertical-align:middle;margin-right:6px;color:#a855f7;" />
+					Hệ điều hành
+				</h3>
 				<div class="chart-content" v-if="statsLogs.length">
 					<div class="distribution-list">
 						<div
@@ -401,7 +440,10 @@ const selectSpecificUrl = (id) => {
 
 			<!-- Referers / Sources -->
 			<div class="chart-card glass">
-				<h3>📤 Nguồn giới thiệu (Referer)</h3>
+				<h3>
+					<Share2 :size="16" style="display:inline-block;vertical-align:middle;margin-right:6px;color:#10b981;" />
+					Nguồn giới thiệu (Referer)
+				</h3>
 				<div class="chart-content" v-if="statsLogs.length">
 					<div class="distribution-list">
 						<div
@@ -437,7 +479,10 @@ const selectSpecificUrl = (id) => {
 			class="top-urls-section glass"
 			v-if="!selectedUrlId && urlsList.length"
 		>
-			<h3>🏆 Top 5 liên kết hiệu quả nhất</h3>
+			<h3>
+				<Trophy :size="18" style="display:inline-block;vertical-align:middle;margin-right:6px;color:#eab308;" />
+				Top 5 liên kết hiệu quả nhất
+			</h3>
 			<div class="top-urls-list">
 				<div
 					v-for="(url, index) in topLinks"
@@ -458,16 +503,18 @@ const selectSpecificUrl = (id) => {
 						<span class="url-clicks-badge"
 							>{{ url.clicks }} clicks</span
 						>
-						<span class="arrow-indicator">➡️</span>
+						<ChevronRight :size="16" style="display:inline-block;vertical-align:middle;margin-left:4px;color:#64748b;" />
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<!-- Log click chi tiết -->
 		<div class="logs-section glass">
 			<div class="logs-header">
-				<h3>📋 Nhật ký truy cập gần đây</h3>
+				<h3>
+					<History :size="18" style="display:inline-block;vertical-align:middle;margin-right:6px;color:#2563eb;" />
+					Nhật ký truy cập gần đây
+				</h3>
 				<div class="logs-search">
 					<input
 						type="text"
@@ -542,14 +589,13 @@ const selectSpecificUrl = (id) => {
 				Chưa ghi nhận lượt click nào phù hợp với bộ lọc.
 			</div>
 
-			<!-- Phân trang (Pagination) -->
 			<div class="pagination" v-if="totalPages > 1">
 				<button
 					:disabled="currentPage === 1"
 					@click="currentPage--"
 					class="page-btn"
 				>
-					Trước
+					<ChevronLeft :size="14" style="display:inline-block;vertical-align:middle;" /> Trước
 				</button>
 				<span class="page-info"
 					>Trang {{ currentPage }} / {{ totalPages }} (Tổng
@@ -560,7 +606,7 @@ const selectSpecificUrl = (id) => {
 					@click="currentPage++"
 					class="page-btn"
 				>
-					Sau
+					Sau <ChevronRight :size="14" style="display:inline-block;vertical-align:middle;" />
 				</button>
 			</div>
 		</div>
@@ -569,9 +615,6 @@ const selectSpecificUrl = (id) => {
 
 <style scoped>
 .analytics-page {
-	padding: 0 24px;
-	max-width: 1200px;
-	margin: 0 auto;
 	display: flex;
 	flex-direction: column;
 	gap: 36px;
@@ -599,8 +642,7 @@ const selectSpecificUrl = (id) => {
 	-webkit-text-fill-color: transparent;
 	background-clip: text;
 	margin-top: 4px;
-	margin-bottom: 0px;
-	letter-spacing: -0.5px;
+	line-height: 1.4;
 }
 
 .title-group p.subtitle {
@@ -764,7 +806,6 @@ const selectSpecificUrl = (id) => {
 	color: #64748b;
 	font-weight: 600;
 	text-transform: uppercase;
-	letter-spacing: 0.5px;
 }
 
 .kpi-value {
@@ -1072,7 +1113,6 @@ const selectSpecificUrl = (id) => {
 	font-weight: 800;
 	text-transform: uppercase;
 	font-size: 12px;
-	letter-spacing: 0.5px;
 	background: rgba(248, 250, 252, 0.8);
 }
 

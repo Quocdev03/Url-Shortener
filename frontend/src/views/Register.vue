@@ -3,6 +3,7 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/store/auth";
 import { toast } from "vue3-toastify";
+import { Eye, EyeOff } from "@lucide/vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -11,6 +12,9 @@ const email = ref("");
 const password = ref("");
 const confirmPassword = ref("");
 const errorMessage = ref("");
+
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
 
 const handleRegister = async () => {
 	// Validate dữ liệu đầu vào
@@ -34,7 +38,8 @@ const handleRegister = async () => {
 	const res = await authStore.register(email.value, password.value);
 
 	if (!res.success) {
-		errorMessage.value = res.message || "Đăng ký thất bại. Vui lòng thử lại.";
+		errorMessage.value =
+			res.message || "Đăng ký thất bại. Vui lòng thử lại.";
 		toast.error(errorMessage.value);
 		return;
 	}
@@ -57,22 +62,40 @@ const handleRegister = async () => {
 				/>
 			</div>
 
-			<div class="auth-input">
+			<div class="auth-input password-input-wrapper">
 				<input
-					type="password"
+					:type="showPassword ? 'text' : 'password'"
 					v-model="password"
 					placeholder="Nhập mật khẩu"
 					@keyup.enter="handleRegister"
 				/>
+				<button
+					type="button"
+					class="password-toggle-btn"
+					@click="showPassword = !showPassword"
+					title="Ẩn/Hiện mật khẩu"
+				>
+					<Eye v-if="!showPassword" :size="20" />
+					<EyeOff v-else :size="20" />
+				</button>
 			</div>
 
-			<div class="auth-input">
+			<div class="auth-input password-input-wrapper">
 				<input
-					type="password"
+					:type="showConfirmPassword ? 'text' : 'password'"
 					v-model="confirmPassword"
 					placeholder="Xác nhận lại mật khẩu"
 					@keyup.enter="handleRegister"
 				/>
+				<button
+					type="button"
+					class="password-toggle-btn"
+					@click="showConfirmPassword = !showConfirmPassword"
+					title="Ẩn/Hiện mật khẩu"
+				>
+					<Eye v-if="!showConfirmPassword" :size="20" />
+					<EyeOff v-else :size="20" />
+				</button>
 			</div>
 
 			<p v-if="errorMessage" class="auth-error">⚠️ {{ errorMessage }}</p>
@@ -82,7 +105,9 @@ const handleRegister = async () => {
 				@click="handleRegister"
 				:disabled="authStore.loadingState"
 			>
-				{{ authStore.loadingState ? "Đang tạo tài khoản..." : "Đăng ký" }}
+				{{
+					authStore.loadingState ? "Đang tạo tài khoản..." : "Đăng ký"
+				}}
 			</button>
 
 			<p class="auth-info">
@@ -100,8 +125,10 @@ const handleRegister = async () => {
 	justify-content: center;
 	align-items: center;
 	gap: 1rem;
-	padding: 20px;
-	min-height: 80vh;
+	width: 100%;
+	min-height: calc(
+		100vh - 195px
+	); /* viewport min-height minus header height (75px) and page padding block (120px) */
 }
 
 .auth-container {

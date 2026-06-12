@@ -1,13 +1,15 @@
 <script setup>
 import { useAuthStore } from "@/store/auth";
 import { useRouter } from "vue-router";
-import { reactive } from "vue";
+import { reactive, ref } from "vue";
 import { toast } from "vue3-toastify";
+import { Eye, EyeOff } from "@lucide/vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
 
 const credentials = reactive({ email: "", password: "" });
+const showPassword = ref(false);
 
 async function loginHandler() {
 	const res = await authStore.login(credentials.email, credentials.password);
@@ -34,12 +36,22 @@ async function loginHandler() {
 				/>
 			</div>
 
-			<div class="auth-input">
+			<div class="auth-input password-input-wrapper">
 				<input
-					type="password"
+					:type="showPassword ? 'text' : 'password'"
 					v-model="credentials.password"
 					placeholder="Nhập mật khẩu"
+					@keyup.enter="loginHandler"
 				/>
+				<button
+					type="button"
+					class="password-toggle-btn"
+					@click="showPassword = !showPassword"
+					title="Ẩn/Hiện mật khẩu"
+				>
+					<Eye v-if="!showPassword" :size="20" />
+					<EyeOff v-else :size="20" />
+				</button>
 			</div>
 
 			<button
@@ -65,8 +77,8 @@ async function loginHandler() {
 	justify-content: center;
 	align-items: center;
 	gap: 1rem;
-	padding: 20px;
-	min-height: 80vh;
+	width: 100%;
+	min-height: calc(100vh - 195px); /* viewport min-height minus header height (75px) and page padding block (120px) */
 }
 
 .auth-container {

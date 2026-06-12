@@ -1,22 +1,45 @@
 <script setup>
+import { ref, onMounted, onUnmounted } from "vue";
 import { useAuthStore } from "@/store/auth";
 import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
 import logo from "../assets/logo/logo.svg";
-import avatar from "../assets/image/user.png";
+import {
+	Home,
+	User,
+	BarChart3,
+	Settings,
+	LogOut
+} from "@lucide/vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
 
-const handleLogout = async () => {
+const showDropdown = ref(false);
+
+const toggleDropdown = (e) => {
+	e.stopPropagation();
+	showDropdown.value = !showDropdown.value;
+};
+
+const closeDropdown = () => {
+	showDropdown.value = false;
+};
+
+const handleLogoutClick = async () => {
+	closeDropdown();
 	await authStore.logout();
 	toast.success("Logged out successfully!");
 	router.push("/");
 };
 
-const handleProfileClick = () => {
-	router.push("/profile");
-};
+onMounted(() => {
+	window.addEventListener("click", closeDropdown);
+});
+
+onUnmounted(() => {
+	window.removeEventListener("click", closeDropdown);
+});
 </script>
 <template>
 	<header class="header-main">
@@ -53,13 +76,49 @@ const handleProfileClick = () => {
 			</div>
 			<!-- Đã đăng nhập -->
 			<div v-else class="header-authenticated">
-				<div @click="handleProfileClick" class="user-profile-pill" title="Trang cá nhân">
-					<img :srcset="`${avatar} 2x`" alt="Avatar" class="user-avatar-img" />
-					<span class="user-email-text">{{ authStore.user?.email }}</span>
+				<div class="user-menu-container">
+					<button @click="toggleDropdown" class="user-avatar-trigger" title="Tài khoản">
+						<div class="avatar-circle">
+							{{ authStore.user?.email?.charAt(0).toUpperCase() }}
+						</div>
+						<span class="chevron-icon">▼</span>
+					</button>
+
+					<!-- Dropdown Menu -->
+					<div v-if="showDropdown" class="user-dropdown-menu" @click.stop>
+						<div class="dropdown-header">
+							<span class="dropdown-email" :title="authStore.user?.email">
+								{{ authStore.user?.email }}
+							</span>
+							<span :class="['role-badge-mini', authStore.user?.role === 'admin' ? 'role-admin' : 'role-user']">
+								{{ authStore.user?.role === 'admin' ? 'Admin' : 'Member' }}
+							</span>
+						</div>
+						<div class="dropdown-divider"></div>
+						
+						<router-link to="/" class="dropdown-item" @click="closeDropdown">
+							<Home :size="16" class="item-icon" /> Trang chủ
+						</router-link>
+
+						<router-link to="/profile" class="dropdown-item" @click="closeDropdown">
+							<User :size="16" class="item-icon" /> Trang cá nhân
+						</router-link>
+						
+						<router-link to="/analytics" class="dropdown-item" @click="closeDropdown">
+							<BarChart3 :size="16" class="item-icon" /> Thống kê
+						</router-link>
+
+						<router-link v-if="authStore.user?.role === 'admin'" to="/admin" class="dropdown-item" @click="closeDropdown">
+							<Settings :size="16" class="item-icon" /> Quản trị hệ thống
+						</router-link>
+
+						<div class="dropdown-divider"></div>
+						
+						<button @click="handleLogoutClick" class="dropdown-item logout-item">
+							<LogOut :size="16" class="item-icon" /> Đăng xuất
+						</button>
+					</div>
 				</div>
-				<button @click="handleLogout" class="btn btn-outline">
-					Logout
-				</button>
 			</div>
 		</div>
 	</header>
@@ -106,6 +165,11 @@ const handleProfileClick = () => {
 	align-items: center;
 	gap: 15px;
 }
+.header-logo > a >img{
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
 
 /* Navigation Menu */
 .header-nav {
@@ -119,8 +183,8 @@ const handleProfileClick = () => {
 	font-weight: 600;
 	color: #64748b;
 	text-decoration: none;
-	padding: 8px 16px;
-	border-radius: 12px;
+	padding: 15px 18px;
+	border-radius: 6px;
 	transition: all 0.25s ease;
 }
 
@@ -134,61 +198,160 @@ const handleProfileClick = () => {
 	background: rgba(66, 97, 237, 0.08);
 }
 
-/* User Profile Badge Capsule */
-.user-profile-pill {
+/* User Profile dropdown menu styling */
+.user-menu-container {
+	position: relative;
+}
+
+.user-avatar-trigger {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 4px;
+	background: transparent;
+	border: none;
+	cursor: pointer;
+	border-radius: 50%;
+	transition: transform 0.2s ease;
+}
+
+.user-avatar-trigger:hover {
+	transform: scale(1.05);
+}
+
+.avatar-circle {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	background: linear-gradient(135deg, #00c0fa 0%, #4261ed 100%);
+	color: white;
+	font-weight: 700;
+	font-size: 16px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 2px 10px rgba(66, 97, 237, 0.25);
+	border: 2px solid white;
+}
+
+.chevron-icon {
+	font-size: 10px;
+	color: #64748b;
+	transition: transform 0.25s ease;
+}
+
+.user-avatar-trigger:focus-visible {
+	outline: 2px solid #4261ed;
+	outline-offset: 2px;
+}
+
+.user-dropdown-menu {
+	position: absolute;
+	top: 50px;
+	right: 0;
+	width: 220px;
+	background: rgba(255, 255, 255, 0.85);
+	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: blur(16px);
+	border: 1px solid rgba(226, 232, 240, 0.8);
+	border-radius: 14px;
+	box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+	padding: 8px;
+	z-index: 100;
+	animation: slideDownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideDownFade {
+	from {
+		opacity: 0;
+		transform: translateY(-8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.dropdown-header {
+	padding: 10px 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.dropdown-email {
+	font-size: 13px;
+	font-weight: 700;
+	color: #0f172a;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.role-badge-mini {
+	font-size: 10px;
+	font-weight: 700;
+	padding: 2px 6px;
+	border-radius: 20px;
+	width: fit-content;
+}
+
+.role-badge-mini.role-user {
+	background: rgba(66, 97, 237, 0.1);
+	color: #4261ed;
+}
+
+.role-badge-mini.role-admin {
+	background: rgba(220, 38, 38, 0.1);
+	color: #dc2626;
+}
+
+.dropdown-divider {
+	height: 1px;
+	background: rgba(226, 232, 240, 0.8);
+	margin: 6px 0;
+}
+
+.dropdown-item {
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	padding: 6px 14px 6px 6px;
-	background: rgba(255, 255, 255, 0.65);
-	border: 1px solid rgba(226, 232, 240, 0.8);
-	border-radius: 30px;
-	cursor: pointer;
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
-}
-
-.user-profile-pill:hover {
-	background: rgba(255, 255, 255, 0.95);
-	border-color: rgba(66, 97, 237, 0.4);
-	box-shadow: 0 4px 12px rgba(66, 97, 237, 0.08);
-	transform: translateY(-1px);
-}
-
-.user-avatar-img {
-	width: 32px;
-	height: 32px;
-	border-radius: 50%;
-	object-fit: cover;
-	border: 2px solid white;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.user-email-text {
-	font-size: 13px;
+	padding: 10px 12px;
+	font-size: 14px;
 	font-weight: 600;
 	color: #475569;
-	max-width: 140px;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	transition: color 0.3s ease;
+	text-decoration: none;
+	border-radius: 8px;
+	width: 100%;
+	text-align: left;
+	transition: all 0.2s ease;
+	background: transparent;
+	border: none;
+	cursor: pointer;
 }
 
-.user-profile-pill:hover .user-email-text {
+.dropdown-item:hover {
+	background: rgba(15, 23, 42, 0.04);
 	color: #0f172a;
+}
+
+.dropdown-item.logout-item {
+	color: #dc2626;
+}
+
+.dropdown-item.logout-item:hover {
+	background: rgba(220, 38, 38, 0.08);
+	color: #dc2626;
+}
+
+.item-icon {
+	font-size: 16px;
 }
 
 /* Mobile responsive styles */
 @media screen and (max-width: 768px) {
 	.header-main {
 		padding: 15px 20px;
-	}
-	.user-email-text {
-		display: none;
-	}
-	.user-profile-pill {
-		padding: 4px;
 	}
 	.header-nav {
 		gap: 8px;
@@ -197,14 +360,15 @@ const handleProfileClick = () => {
 		padding: 6px 12px;
 		font-size: 14px;
 	}
+
+	.header-logo > a >img{
+		max-width: 200px;
+}
 }
 
-@media screen and (max-width: 480px) {
-	.nav-link:first-child {
-		display: none; /* Hide 'Trang chủ' since logo links to '/' */
-	}
+@media screen and (max-width: 576px) {
 	.header-nav {
-		gap: 4px;
+		display: none;
 	}
 }
 </style>

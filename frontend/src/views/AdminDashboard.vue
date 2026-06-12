@@ -1,9 +1,23 @@
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, watch } from "vue";
 import { useAuthStore } from "@/store/auth";
 import { useAdminStore } from "@/store/admin";
 import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
+import {
+	Users,
+	Link2,
+	Search,
+	Plus,
+	Edit,
+	Trash2,
+	ChevronLeft,
+	ChevronRight,
+	Eye,
+	EyeOff,
+	AlertTriangle,
+	X
+} from "@lucide/vue";
 
 const authStore = useAuthStore();
 const adminStore = useAdminStore();
@@ -31,8 +45,12 @@ const userForm = ref({
 	id: null,
 	email: "",
 	password: "",
+	confirmPassword: "",
 	role: "user",
 });
+
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
 
 const showUrlModal = ref(false);
 const isUrlEditMode = ref(false);
@@ -124,7 +142,7 @@ watch(activeTab, (newTab) => {
 	}
 });
 
-onMounted(() => {
+const checkAdminAndLoad = () => {
 	if (authStore.user?.role !== "admin") {
 		toast.error("Bạn không có quyền truy cập trang này!");
 		router.push("/");
@@ -132,14 +150,17 @@ onMounted(() => {
 	}
 	fetchUsers();
 	fetchDropdownUsers();
-});
+};
+checkAdminAndLoad();
 
 // ==========================================
 // HÀNH ĐỘNG - USERS
 // ==========================================
 const openCreateUserModal = () => {
 	isUserEditMode.value = false;
-	userForm.value = { id: null, email: "", password: "", role: "user" };
+	userForm.value = { id: null, email: "", password: "", confirmPassword: "", role: "user" };
+	showPassword.value = false;
+	showConfirmPassword.value = false;
 	showUserModal.value = true;
 };
 
@@ -149,8 +170,11 @@ const openEditUserModal = (user) => {
 		id: user.id,
 		email: user.email,
 		password: "",
+		confirmPassword: "",
 		role: user.role,
 	};
+	showPassword.value = false;
+	showConfirmPassword.value = false;
 	showUserModal.value = true;
 };
 
@@ -165,6 +189,10 @@ const handleUserSubmit = async () => {
 	}
 	if (userForm.value.password && userForm.value.password.length < 8) {
 		toast.error("Mật khẩu phải có ít nhất 8 ký tự.");
+		return;
+	}
+	if (userForm.value.password !== userForm.value.confirmPassword) {
+		toast.error("Xác nhận mật khẩu không trùng khớp.");
 		return;
 	}
 
@@ -337,7 +365,7 @@ const getUserEmail = (userId) => {
 <template>
 	<div class="admin-dashboard-container">
 		<div class="dashboard-header">
-			<h1>⚙️ Bảng Quản Trị Hệ Thống</h1>
+			<h1 class="gradient-text">Bảng Quản Trị Hệ Thống</h1>
 			<p class="subtitle">
 				Quản lý tài khoản người dùng và kho link rút gọn toàn hệ thống
 			</p>
@@ -348,14 +376,14 @@ const getUserEmail = (userId) => {
 					class="tab-btn"
 					:class="{ active: activeTab === 'users' }"
 				>
-					👥 Người Dùng
+					<Users :size="16" style="display: inline-block; vertical-align: middle; margin-right: 6px;" /> Người Dùng
 				</button>
 				<button
 					@click="activeTab = 'urls'"
 					class="tab-btn"
 					:class="{ active: activeTab === 'urls' }"
 				>
-					🔗 Liên Kết URLs
+					<Link2 :size="16" style="display: inline-block; vertical-align: middle; margin-right: 6px;" /> Liên Kết URLs
 				</button>
 			</div>
 		</div>
@@ -364,7 +392,7 @@ const getUserEmail = (userId) => {
 		<div v-if="activeTab === 'users'" class="dashboard-content">
 			<div class="actions-row">
 				<div class="search-box">
-					<span class="search-icon">🔍</span>
+					<Search class="search-icon" :size="16" />
 					<input
 						v-model="userSearch"
 						type="text"
@@ -375,7 +403,7 @@ const getUserEmail = (userId) => {
 					@click="openCreateUserModal"
 					class="btn btn-primary add-btn"
 				>
-					Thêm Người Dùng
+					<Plus :size="16" style="display: inline-block; vertical-align: middle; margin-right: 4px;" /> Thêm Người Dùng
 				</button>
 			</div>
 
@@ -432,7 +460,7 @@ const getUserEmail = (userId) => {
 											: 'Sửa người dùng'
 									"
 								>
-									✏️ Sửa
+									<Edit :size="14" style="display: inline-block; vertical-align: middle; margin-right: 4px;" /> Sửa
 								</button>
 								<button
 									@click="confirmDelete('user', user)"
@@ -444,7 +472,7 @@ const getUserEmail = (userId) => {
 											: 'Xoá người dùng'
 									"
 								>
-									🗑️ Xoá
+									<Trash2 :size="14" style="display: inline-block; vertical-align: middle; margin-right: 4px;" /> Xoá
 								</button>
 							</td>
 						</tr>
@@ -452,7 +480,6 @@ const getUserEmail = (userId) => {
 				</table>
 			</div>
 
-			<!-- User Pagination -->
 			<div v-if="adminStore.userTotalPages > 1" class="pagination">
 				<button
 					@click="
@@ -462,7 +489,7 @@ const getUserEmail = (userId) => {
 					:disabled="userPage === 1"
 					class="page-btn"
 				>
-					◀️ Trước
+					<ChevronLeft :size="14" style="display: inline-block; vertical-align: middle;" /> Trước
 				</button>
 				<span class="page-info"
 					>Trang {{ userPage }} /
@@ -477,7 +504,7 @@ const getUserEmail = (userId) => {
 					:disabled="userPage === adminStore.userTotalPages"
 					class="page-btn"
 				>
-					Sau ▶️
+					Sau <ChevronRight :size="14" style="display: inline-block; vertical-align: middle;" />
 				</button>
 			</div>
 		</div>
@@ -487,7 +514,7 @@ const getUserEmail = (userId) => {
 			<div class="actions-row">
 				<div class="filters-group">
 					<div class="search-box">
-						<span class="search-icon">🔍</span>
+						<Search class="search-icon" :size="16" />
 						<input
 							v-model="urlSearch"
 							type="text"
@@ -511,7 +538,7 @@ const getUserEmail = (userId) => {
 					@click="openCreateUrlModal"
 					class="btn btn-primary add-btn"
 				>
-					Tạo Link URL mới
+					<Plus :size="16" style="display: inline-block; vertical-align: middle; margin-right: 4px;" /> Tạo Link URL mới
 				</button>
 			</div>
 
@@ -580,14 +607,14 @@ const getUserEmail = (userId) => {
 									class="action-btn edit-btn"
 									title="Sửa liên kết"
 								>
-									✏️ Sửa
+									<Edit :size="14" style="display: inline-block; vertical-align: middle; margin-right: 4px;" /> Sửa
 								</button>
 								<button
 									@click="confirmDelete('url', url)"
 									class="action-btn delete-btn"
 									title="Xoá liên kết"
 								>
-									🗑️ Xoá
+									<Trash2 :size="14" style="display: inline-block; vertical-align: middle; margin-right: 4px;" /> Xoá
 								</button>
 							</td>
 						</tr>
@@ -595,7 +622,6 @@ const getUserEmail = (userId) => {
 				</table>
 			</div>
 
-			<!-- URL Pagination -->
 			<div v-if="adminStore.urlTotalPages > 1" class="pagination">
 				<button
 					@click="
@@ -605,7 +631,7 @@ const getUserEmail = (userId) => {
 					:disabled="urlPage === 1"
 					class="page-btn"
 				>
-					◀️ Trước
+					<ChevronLeft :size="14" style="display: inline-block; vertical-align: middle;" /> Trước
 				</button>
 				<span class="page-info"
 					>Trang {{ urlPage }} / {{ adminStore.urlTotalPages }} (Tổng
@@ -619,7 +645,7 @@ const getUserEmail = (userId) => {
 					:disabled="urlPage === adminStore.urlTotalPages"
 					class="page-btn"
 				>
-					Sau ▶️
+					Sau <ChevronRight :size="14" style="display: inline-block; vertical-align: middle;" />
 				</button>
 			</div>
 		</div>
@@ -641,7 +667,7 @@ const getUserEmail = (userId) => {
 						@click="showUserModal = false"
 						class="close-modal-btn"
 					>
-						✕
+						<X :size="18" />
 					</button>
 				</div>
 				<form @submit.prevent="handleUserSubmit" class="modal-form">
@@ -661,12 +687,48 @@ const getUserEmail = (userId) => {
 								isUserEditMode ? "(Bỏ trống nếu không đổi)" : ""
 							}}</label
 						>
-						<input
-							v-model="userForm.password"
-							type="password"
-							placeholder="Nhập mật khẩu (tối thiểu 8 ký tự)"
-							:required="!isUserEditMode"
-						/>
+						<div class="password-input-wrapper">
+							<input
+								v-model="userForm.password"
+								:type="showPassword ? 'text' : 'password'"
+								placeholder="Nhập mật khẩu (tối thiểu 8 ký tự)"
+								:required="!isUserEditMode"
+							/>
+							<button
+								type="button"
+								class="password-toggle-btn"
+								@click="showPassword = !showPassword"
+								title="Ẩn/Hiện mật khẩu"
+							>
+								<Eye v-if="!showPassword" :size="16" />
+								<EyeOff v-else :size="16" />
+							</button>
+						</div>
+					</div>
+					<div class="form-group">
+						<label
+							>Xác nhận mật khẩu
+							{{
+								isUserEditMode ? "(Bỏ trống nếu không đổi)" : ""
+							}}</label
+						>
+						<div class="password-input-wrapper">
+							<input
+								v-model="userForm.confirmPassword"
+								:type="showConfirmPassword ? 'text' : 'password'"
+								placeholder="Xác nhận mật khẩu mới"
+								:required="!isUserEditMode || !!userForm.password"
+							/>
+							<button
+								type="button"
+								class="password-toggle-btn"
+								@click="showConfirmPassword = !showConfirmPassword"
+								title="Ẩn/Hiện mật khẩu"
+							>
+								<Eye v-if="!showConfirmPassword" :size="16" />
+								<EyeOff v-else :size="16" />
+							</button>
+						</div>
 					</div>
 					<div class="form-group">
 						<label>Vai trò (Role)</label>
@@ -715,7 +777,7 @@ const getUserEmail = (userId) => {
 						@click="showUrlModal = false"
 						class="close-modal-btn"
 					>
-						✕
+						<X :size="18" />
 					</button>
 				</div>
 				<form @submit.prevent="handleUrlSubmit" class="modal-form">
@@ -730,7 +792,7 @@ const getUserEmail = (userId) => {
 								-- Chọn người dùng sở hữu --
 							</option>
 							<option
-								v-for="u in allUsersDropdown"
+								v-for="u in adminStore.dropdownUsers"
 								:key="u.id"
 								:value="u.id"
 							>
@@ -792,12 +854,15 @@ const getUserEmail = (userId) => {
 		<div v-if="showDeleteConfirmModal" class="modal-overlay">
 			<div class="glass-card modal-card confirm-modal">
 				<div class="modal-header">
-					<h2>⚠️ Xác nhận xoá dữ liệu</h2>
+					<h2>
+						<AlertTriangle :size="20" style="display: inline-block; vertical-align: middle; margin-right: 6px; color: #ef4444;" />
+						Xác nhận xoá dữ liệu
+					</h2>
 					<button
 						@click="showDeleteConfirmModal = false"
 						class="close-modal-btn"
 					>
-						✕
+						<X :size="18" />
 					</button>
 				</div>
 				<div class="modal-body">
@@ -851,10 +916,8 @@ const getUserEmail = (userId) => {
 
 <style scoped>
 .admin-dashboard-container {
-	padding: 0px 24px;
-	margin-left: auto;
-	margin-right: auto;
-	min-height: 80vh;
+	width: 100%;
+	padding-bottom: 40px;
 }
 
 .dashboard-header {
@@ -862,11 +925,15 @@ const getUserEmail = (userId) => {
 	text-align: center;
 }
 
-.dashboard-header h1 {
-	font-size: 28px;
-	color: #0f172a;
+.dashboard-header h1.gradient-text {
+	font-size: 34px;
 	font-weight: 800;
-	margin-bottom: 8px;
+	background: linear-gradient(135deg, #00b3fa 0%, #1a80e5 50%, #4261ed 100%);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	margin: 5px 0;
+	line-height: 1.4;
 }
 
 .subtitle {

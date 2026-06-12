@@ -1,108 +1,126 @@
 <script setup>
-import { computed, ref, onMounted } from "vue";
+import { computed, ref } from "vue";
 import { toast } from "vue3-toastify";
 import { useUrlStore } from "@/store/url";
 import { useAuthStore } from "@/store/auth";
+import {
+	Zap,
+	Sparkles,
+	Copy,
+	Trash2,
+	Info,
+	X
+} from "@lucide/vue";
+
+const urlStore = useUrlStore();
+const authStore = useAuthStore();
+
+const isLoggedIn = computed(() => authStore.isAuthenticated);
 
 const inputUrl = ref("");
 const customAlias = ref("");
 const expiresAt = ref("");
-const showAdvanced = ref(false); // Toggle tùy chọn nâng cao
+const showAdvanced = ref(false);
 
-const urlStore = useUrlStore();
-const authStore = useAuthStore();
-const isLoggedIn = computed(() => authStore.isAuthenticated);
+const lastShortenedUrl = ref(null);
 
-const guestUrls = ref([]);
+const guestUrls = ref(JSON.parse(localStorage.getItem("guest_urls") || "[]"));
 
-onMounted(() => {
-	const savedUrls = localStorage.getItem("guest_urls");
-	if (savedUrls) {
-		try {
-			guestUrls.value = JSON.parse(savedUrls);
-		} catch (e) {
-			console.error("Lỗi parse URLs từ localStorage", e);
-		}
-	}
-});
+const saveGuestUrls = () => {
+	localStorage.setItem("guest_urls", JSON.stringify(guestUrls.value));
+};
+
+const resetForm = () => {
+	inputUrl.value = "";
+	customAlias.value = "";
+	expiresAt.value = "";
+	showAdvanced.value = false;
+};
 
 const deleteGuestUrl = (index) => {
 	guestUrls.value.splice(index, 1);
-	localStorage.setItem("guest_urls", JSON.stringify(guestUrls.value));
+	saveGuestUrls();
 	toast.success("Đã xoá URL khỏi lịch sử local!");
 };
 
-// Hàm sao chép nhanh link
 const copyToClipboard = async (text) => {
 	try {
 		await navigator.clipboard.writeText(text);
 		toast.success("Đã sao chép link thành công!");
-	} catch (err) {
+	} catch {
 		toast.error("Không thể sao chép tự động");
 	}
 };
 
-const lastShortenedUrl = ref(null);
+const buildPayload = () => {
+	const payload = {
+		originalUrl: inputUrl.value.trim(),
+	};
+
+	if (!isLoggedIn.value) {
+		return payload;
+	}
+
+	if (customAlias.value.trim()) {
+		payload.customAlias = customAlias.value.trim();
+	}
+
+	if (showAdvanced.value) {
+		if (!expiresAt.value) {
+			throw new Error(
+				"Vui lòng chọn ngày hết hạn khi sử dụng tùy chọn nâng cao!",
+			);
+		}
+
+		payload.expiresAt = new Date(expiresAt.value).toISOString();
+	}
+
+	return payload;
+};
+
+const saveGuestResult = (data) => {
+	guestUrls.value.unshift(data);
+	saveGuestUrls();
+};
+
+const showResult = (data) => {
+	lastShortenedUrl.value = {
+		original: data.originalUrl,
+		short: data.shortUrl,
+		customAlias: data.customAlias ?? null,
+	};
+};
 
 const shortenUrl = async () => {
-	if (!inputUrl.value.trim()) return;
+	if (!inputUrl.value.trim()) {
+		toast.error("Vui lòng nhập URL!");
+		return;
+	}
 
 	try {
-		let res;
-		if (isLoggedIn.value) {
-			const payload = { originalUrl: inputUrl.value };
-			if (customAlias.value.trim())
-				payload.customAlias = customAlias.value.trim();
+		const payload = buildPayload();
 
-			if (showAdvanced.value) {
-				if (!expiresAt.value) {
-					toast.error(
-						"Vui lòng chọn ngày hết hạn khi sử dụng tùy chọn nâng cao!",
-					);
-					return;
-				}
-				payload.expiresAt = new Date(expiresAt.value).toISOString();
-			}
+		const res = await urlStore.createUrl(payload, isLoggedIn.value);
 
-			res = await urlStore.createUrl(payload, true);
-			if (res?.data) {
-				lastShortenedUrl.value = {
-					original: res.data.originalUrl,
-					short: res.data.shortUrl,
-					customAlias: res.data.customAlias,
-				};
-			}
-		} else {
-			res = await urlStore.createUrl(
-				{ originalUrl: inputUrl.value },
-				false,
-			);
-			if (res?.data) {
-				guestUrls.value.unshift(res.data);
-				localStorage.setItem(
-					"guest_urls",
-					JSON.stringify(guestUrls.value),
-				);
-				lastShortenedUrl.value = {
-					original: res.data.originalUrl,
-					short: res.data.shortUrl,
-					customAlias: null,
-				};
-			}
+		if (!res?.data) return;
+
+		if (!isLoggedIn.value) {
+			saveGuestResult(res.data);
 		}
 
-		if (res?.data) {
-			toast.success("URL đã được tạo thành công!");
-		}
-		inputUrl.value = "";
-		customAlias.value = "";
-		expiresAt.value = "";
-		showAdvanced.value = false;
+		showResult(res.data);
+
+		toast.success("URL đã được tạo thành công!");
+
+		resetForm();
 	} catch (err) {
-		const message =
-			typeof err === "string" ? err : err?.message || "Lỗi tạo URL";
+		const message = err?.message || "Lỗi tạo URL";
+
 		toast.error(message);
-		console.error(err);
+
+		if (import.meta.env.DEV) {
+			console.error(err);
+		}
 	}
 };
 </script>
@@ -141,24 +159,33 @@ const shortenUrl = async () => {
 				class="advanced-toggle"
 				@click="showAdvanced = !showAdvanced"
 			>
-				<span>⚡ Tùy chọn nâng cao (Alias, Hết hạn)</span>
+				<span>
+					<Zap :size="14" style="display:inline-block;vertical-align:middle;margin-right:4px;" />
+					Tùy chọn nâng cao (Alias, Hết hạn)
+				</span>
+
+				<span class="toggle-arrow" :class="{ open: showAdvanced }">
+					▼
+				</span>
 			</div>
 
-			<div v-if="isLoggedIn && showAdvanced" class="advanced-fields">
-				<div class="field">
-					<label>Custom Alias (Tùy chọn tên link)</label>
-					<input
-						type="text"
-						v-model="customAlias"
-						placeholder="Ví dụ: my-fb-profile"
-					/>
-				</div>
+			<Transition name="advanced">
+				<div v-if="isLoggedIn && showAdvanced" class="advanced-fields">
+					<div class="field">
+						<label>Custom Alias (Tùy chọn tên link)</label>
+						<input
+							type="text"
+							v-model="customAlias"
+							placeholder="Ví dụ: my-fb-profile"
+						/>
+					</div>
 
-				<div class="field">
-					<label>Ngày hết hạn (Bắt buộc)</label>
-					<input type="datetime-local" v-model="expiresAt" required />
+					<div class="field">
+						<label>Ngày hết hạn</label>
+						<input type="datetime-local" v-model="expiresAt" />
+					</div>
 				</div>
-			</div>
+			</Transition>
 
 			<!-- Hộp hiển thị kết quả rút gọn mới tạo -->
 			<div
@@ -166,12 +193,15 @@ const shortenUrl = async () => {
 				class="result-box-wrapper animate-fade-in"
 			>
 				<div class="result-box-header">
-					<h4>🎉 Link rút gọn của bạn:</h4>
+					<h4>
+						<Sparkles :size="16" style="display:inline-block;vertical-align:middle;margin-right:4px;color:#eab308;" />
+						Link rút gọn của bạn:
+					</h4>
 					<button
 						class="btn-close-result"
 						@click="lastShortenedUrl = null"
 					>
-						✕
+						<X :size="16" />
 					</button>
 				</div>
 				<div class="result-box-body">
@@ -192,15 +222,16 @@ const shortenUrl = async () => {
 						class="btn-copy-result"
 						@click="copyToClipboard(lastShortenedUrl.short)"
 					>
-						Sao chép 📋
+						Sao chép <Copy :size="13" style="display:inline-block;vertical-align:middle;margin-left:4px;" />
 					</button>
 				</div>
 			</div>
 
 			<p v-if="!isLoggedIn" class="home-info">
-				📌 Link của khách sẽ tạm thời lưu ở trình duyệt này. Hãy
+				<Info :size="14" style="display:inline-block;vertical-align:middle;margin-right:4px;" />
+				Link của bạn sẽ tạm thời lưu ở trình duyệt này. Hãy
 				<router-link to="/login">Đăng nhập</router-link> để đặt biệt
-				danh tùy chỉnh và lưu vĩnh viễn.
+				danh tùy chỉnh và lưu lâu hơn.
 			</p>
 		</div>
 
@@ -243,14 +274,14 @@ const shortenUrl = async () => {
 							class="action-btn copy"
 							title="Copy"
 						>
-							📋
+							<Copy :size="14" />
 						</button>
 						<button
 							@click="deleteGuestUrl(index)"
 							class="action-btn delete"
 							title="Xóa"
 						>
-							🗑️
+							<Trash2 :size="14" />
 						</button>
 					</div>
 				</li>
@@ -262,8 +293,9 @@ const shortenUrl = async () => {
 <style scoped>
 /* Reset & Layout bọc ngoài */
 .home-wrapper {
-	padding: 40px 20px;
-	min-height: 85vh;
+	display: flex;
+	flex-direction: column;
+	gap: 32px;
 }
 
 /* Styling for new recently shortened result box */
@@ -391,6 +423,8 @@ const shortenUrl = async () => {
 	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
 	border: 1px solid rgba(255, 255, 255, 0.5);
 	width: 100%;
+	max-width: 800px;
+	margin: 0 auto;
 }
 
 .home-title {
@@ -468,6 +502,19 @@ const shortenUrl = async () => {
 	font-weight: 600;
 	color: #475569;
 	margin-top: 16px;
+
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+
+	transition:
+		background-color 0.2s ease,
+		transform 0.2s ease;
+}
+
+.advanced-toggle:hover {
+	background: #e2e8f0;
+	transform: translateY(-1px);
 }
 
 .advanced-toggle:hover {
@@ -499,14 +546,37 @@ const shortenUrl = async () => {
 
 .advanced-fields input {
 	padding: 10px 12px;
-	border: 1px solid #cbd5e1;
-	border-radius: 6px;
+	border: 2px solid #e2e8f0;
+	border-radius: 8px;
 	font-size: 14px;
 	outline: none;
+	background: white;
+	color: #334155;
+	font-family: inherit;
+	transition: all 0.2s ease;
+}
+
+.advanced-fields input[type="datetime-local"] {
+	cursor: pointer;
+	position: relative;
+}
+
+.advanced-fields input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+	background: transparent;
+	bottom: 0;
+	color: transparent;
+	cursor: pointer;
+	height: auto;
+	left: 0;
+	position: absolute;
+	right: 0;
+	top: 0;
+	width: auto;
 }
 
 .advanced-fields input:focus {
 	border-color: #2563eb;
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .home-info {
@@ -529,7 +599,6 @@ const shortenUrl = async () => {
 /* Panel quản lý danh sách URL (Được tách rộng rãi) */
 .home-history-panel {
 	width: 100%;
-	flex: 1.3;
 	background: rgba(255, 255, 255, 0.75);
 	backdrop-filter: blur(12px);
 	-webkit-backdrop-filter: blur(12px);
@@ -540,6 +609,8 @@ const shortenUrl = async () => {
 	max-height: 500px;
 	display: flex;
 	flex-direction: column;
+	max-width: 800px;
+	margin: 0 auto;
 }
 
 .panel-header {
@@ -624,18 +695,6 @@ const shortenUrl = async () => {
 	text-decoration: underline;
 }
 
-.alias-tag {
-	font-size: 11px;
-	background: #fef08a;
-	color: #713f12;
-	padding: 2px 6px;
-	border-radius: 4px;
-	font-weight: 500;
-	display: inline-block;
-	margin-top: 2px;
-	width: fit-content;
-}
-
 /* Cụm nút hành động */
 .actions {
 	display: flex;
@@ -664,5 +723,41 @@ const shortenUrl = async () => {
 .action-btn.delete:hover {
 	background: #fef2f2;
 	border-color: #ef4444;
+}
+
+/* Advanced panel animation */
+.advanced-enter-active,
+.advanced-leave-active {
+	overflow: hidden;
+	transition:
+		max-height 0.3s ease,
+		opacity 0.25s ease,
+		transform 0.25s ease,
+		margin-top 0.25s ease;
+}
+
+.advanced-enter-from,
+.advanced-leave-to {
+	max-height: 0;
+	opacity: 0;
+	transform: translateY(-10px);
+	margin-top: 0;
+}
+
+.advanced-enter-to,
+.advanced-leave-from {
+	max-height: 300px;
+	opacity: 1;
+	transform: translateY(0);
+	margin-top: 15px;
+}
+
+.toggle-arrow {
+	font-size: 12px;
+	transition: transform 0.25s ease;
+}
+
+.toggle-arrow.open {
+	transform: rotate(180deg);
 }
 </style>

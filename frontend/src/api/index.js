@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useLoadingStore } from "@/store/loading";
 
 const api = axios.create({
 	baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api",
@@ -14,12 +15,29 @@ api.interceptors.request.use((config) => {
 		config.headers = config.headers || {};
 		config.headers.Authorization = `Bearer ${token}`;
 	}
+
+	if (config.showLoader !== false) {
+		const loadingStore = useLoadingStore();
+		loadingStore.startLoading();
+	}
+
 	return config;
 });
 
 api.interceptors.response.use(
-	(response) => response.data,
+	(response) => {
+		if (response.config?.showLoader !== false) {
+			const loadingStore = useLoadingStore();
+			loadingStore.stopLoading();
+		}
+		return response.data;
+	},
 	(error) => {
+		if (error.config && error.config.showLoader !== false) {
+			const loadingStore = useLoadingStore();
+			loadingStore.stopLoading();
+		}
+
 		if (error.response) {
 			if (error.response.status === 401) {
 				// Token expired / unauthorized: xử lý logout nếu cần

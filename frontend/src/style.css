@@ -42,8 +42,24 @@ body {
 	max-width: 100%;
 	margin-left: auto;
 	margin-right: auto;
-	padding: 100px 15px 0px 15px;
+	padding: 75px 0px 0px 0px;
 	background-color: var(--primary-bg);
+}
+
+.app-main {
+	width: 100%;
+	max-width: 1200px;
+	margin-left: auto;
+	margin-right: auto;
+	padding: 40px 24px 80px 24px;
+	min-height: calc(100vh - 75px);
+	box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+	.app-main {
+		padding: 24px 16px 100px 16px;
+	}
 }
 .btn {
 	display: block;
@@ -107,4 +123,34 @@ body {
 	filter: brightness(0.93);
 	transform: translateY(0);
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Password visibility toggle styling */
+.password-input-wrapper {
+	position: relative;
+	width: 100%;
+}
+
+.password-input-wrapper input {
+	padding-right: 44px !important;
+}
+
+.password-toggle-btn {
+	position: absolute;
+	right: 12px;
+	top: 50%;
+	transform: translateY(-50%);
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: #94a3b8;
+	padding: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: color 0.2s ease;
+}
+
+.password-toggle-btn:hover {
+	color: #64748b;
 }

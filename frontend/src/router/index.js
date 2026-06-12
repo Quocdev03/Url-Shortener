@@ -1,12 +1,13 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/store/auth";
-import Home from "../views/Home.vue";
-import Login from "../views/Login.vue";
-import Register from "../views/Register.vue";
-import Profile from "../views/Profile.vue";
-import Expired from "../components/Expired.vue";
-import Analytics from "../views/Analytics.vue";
-import AdminDashboard from "../views/AdminDashboard.vue";
+
+const Home = () => import("../views/Home.vue");
+const Login = () => import("../views/Login.vue");
+const Register = () => import("../views/Register.vue");
+const Profile = () => import("../views/Profile.vue");
+const Expired = () => import("../components/Expired.vue");
+const Analytics = () => import("../views/Analytics.vue");
+const AdminDashboard = () => import("../views/AdminDashboard.vue");
 
 const routes = [
 	{
@@ -60,6 +61,12 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
 	const authStore = useAuthStore();
 	const isAuthenticated = authStore.isAuthenticated;
+
+	// Không cho phép truy cập trực tiếp trang Expired bằng cách gõ URL
+	if (to.name === "Expired" && (!from.name || from.matched.length === 0)) {
+		next("/");
+		return;
+	}
 
 	// Nếu route yêu cầu admin
 	if (to.meta.requiresAdmin) {
