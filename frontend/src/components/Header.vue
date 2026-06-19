@@ -9,7 +9,8 @@ import {
 	User,
 	BarChart3,
 	Settings,
-	LogOut
+	LogOut,
+	Link2
 } from "@lucide/vue";
 
 const authStore = useAuthStore();
@@ -49,15 +50,18 @@ onUnmounted(() => {
 			</router-link>
 		</div>
 
-		<!-- Menu điều hướng chính khi đã đăng nhập -->
-		<nav v-if="authStore.isAuthenticated" class="header-nav">
+		<!-- Menu điều hướng chính -->
+		<nav class="header-nav">
 			<router-link to="/" class="nav-link" exact-active-class="active">
 				Trang chủ
 			</router-link>
-			<router-link to="/analytics" class="nav-link" active-class="active">
+			<router-link to="/shorten" class="nav-link" active-class="active">
+				Rút gọn link
+			</router-link>
+			<router-link v-if="authStore.isAuthenticated" to="/analytics" class="nav-link" active-class="active">
 				Thống kê
 			</router-link>
-			<router-link v-if="authStore.user?.role === 'admin'" to="/admin" class="nav-link" active-class="active">
+			<router-link v-if="authStore.isAuthenticated && authStore.user?.role === 'admin'" to="/admin" class="nav-link" active-class="active">
 				Quản trị
 			</router-link>
 		</nav>
@@ -68,10 +72,10 @@ onUnmounted(() => {
 				class="header-unauthenticated"
 			>
 				<router-link to="/login" class="btn btn-primary">
-					Login
+					Đăng nhập
 				</router-link>
 				<router-link to="/register" class="btn btn-outline">
-					Sign Up
+					Đăng ký
 				</router-link>
 			</div>
 			<!-- Đã đăng nhập -->
@@ -98,6 +102,10 @@ onUnmounted(() => {
 						
 						<router-link to="/" class="dropdown-item" @click="closeDropdown">
 							<Home :size="16" class="item-icon" /> Trang chủ
+						</router-link>
+
+						<router-link to="/shorten" class="dropdown-item" @click="closeDropdown">
+							<Link2 :size="16" class="item-icon" /> Rút gọn link
 						</router-link>
 
 						<router-link to="/profile" class="dropdown-item" @click="closeDropdown">
@@ -132,7 +140,7 @@ onUnmounted(() => {
 	margin-bottom: 20px;
 	padding: 15px 35px;
 	height: 75px;
-	background-color: rgba(255, 255, 255, 0.75);
+	background-color: rgba(255, 255, 255, 0.5);
 	backdrop-filter: blur(12px);
 	-webkit-backdrop-filter: blur(12px);
 	position: fixed;

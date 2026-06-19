@@ -618,6 +618,7 @@ const selectSpecificUrl = (id) => {
 	display: flex;
 	flex-direction: column;
 	gap: 36px;
+	padding-bottom: 40px;
 }
 
 .analytics-header {

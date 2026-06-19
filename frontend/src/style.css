@@ -44,6 +44,7 @@ body {
 	margin-right: auto;
 	padding: 75px 0px 0px 0px;
 	background-color: var(--primary-bg);
+	overflow-x: hidden;
 }
 
 .app-main {

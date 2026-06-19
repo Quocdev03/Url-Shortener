@@ -302,7 +302,7 @@ const handleDeleteUrl = async () => {
 					>
 						<Link2 :size="18" style="display:inline-block;vertical-align:middle;margin-right:6px;" />
 						Bạn chưa tạo link rút gọn nào.
-						<router-link to="/">Tạo ngay!</router-link>
+						<router-link to="/shorten">Tạo ngay!</router-link>
 					</div>
 
 					<ul v-else class="history-list">

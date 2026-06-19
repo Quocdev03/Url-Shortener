@@ -107,7 +107,7 @@ async function loginHandler() {
 	-webkit-text-fill-color: transparent;
 	background-clip: text;
 	color: transparent;
-	margin-bottom: 12px;
+	padding-bottom: 17px;
 }
 
 .auth-input {

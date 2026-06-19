@@ -30,32 +30,7 @@ async function createShortUrl({ originalUrl, customAlias, expiresAt, userId }) {
 	// Validate và normalize URL đầu vào (remove whitespace, check format)
 	const normalizedUrl = validateUrl(originalUrl);
 
-	// Sử dụng custom alias nếu có, nếu không generate random 7-ký-tự code
-	let code = customAlias || nanoid(7);
-
-	if (customAlias) {
-		// CASE 1: User cung cấp custom alias
-		// Kiểm tra xem custom alias đã tồn tại trong DB chưa
-		const exists = await urlRepository.isCodeTaken(customAlias);
-		// Nếu alias đã được dùng → throw conflict error
-		if (exists) throw conflict("Alias already taken");
-	} else {
-		// CASE 2: Generate random code (collision detection logic)
-		// Retry tối đa 5 lần nếu code bị duplicate
-		let attempt = 0;
-		while (await urlRepository.isCodeTaken(code)) {
-			attempt += 1;
-			// Nếu sau 5 lần vẫn collision → fail (xác suất rất thấp với nanoid(7))
-			if (attempt > 5) {
-				throw conflict("Unable to generate a unique short code");
-			}
-			// Generate code mới và retry
-			code = nanoid(7);
-		}
-	}
-
 	// Normalize expiresAt → UTC ISO string trước khi lưu DB
-	// Tránh lỗi khi frontend gửi datetime-local string không có timezone (vd: "2026-06-15T10:00")
 	let normalizedExpiresAt = null;
 	if (expiresAt) {
 		const d = new Date(expiresAt);
@@ -64,16 +39,56 @@ async function createShortUrl({ originalUrl, customAlias, expiresAt, userId }) {
 		}
 	}
 
-	// Lưu vào DB với user_id, original URL, generated/custom code
-	const url = await urlRepository.createUrl({
-		userId,
-		original: normalizedUrl,
-		code,
-		customAlias: customAlias || null,
-		expiresAt: normalizedExpiresAt,
-	});
+	if (customAlias) {
+		// CASE 1: User cung cấp custom alias
+		const exists = await urlRepository.isCodeTaken(customAlias);
+		if (exists) throw conflict("Alias already taken");
 
-	return url;
+		try {
+			const url = await urlRepository.createUrl({
+				userId,
+				original: normalizedUrl,
+				code: customAlias,
+				customAlias,
+				expiresAt: normalizedExpiresAt,
+			});
+			return url;
+		} catch (error) {
+			if (error.code === "ER_DUP_ENTRY") {
+				throw conflict("Alias already taken");
+			}
+			throw error;
+		}
+	} else {
+		// CASE 2: Generate random code (collision detection logic)
+		let attempt = 0;
+		while (attempt < 5) {
+			const code = nanoid(7);
+			const exists = await urlRepository.isCodeTaken(code);
+			if (exists) {
+				attempt += 1;
+				continue;
+			}
+
+			try {
+				const url = await urlRepository.createUrl({
+					userId,
+					original: normalizedUrl,
+					code,
+					customAlias: null,
+					expiresAt: normalizedExpiresAt,
+				});
+				return url;
+			} catch (error) {
+				if (error.code === "ER_DUP_ENTRY") {
+					attempt += 1;
+					continue;
+				}
+				throw error;
+			}
+		}
+		throw conflict("Unable to generate a unique short code");
+	}
 }
 
 async function resolveCode(code) {

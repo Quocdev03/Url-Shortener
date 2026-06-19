@@ -15,12 +15,7 @@ import logo from "../assets/logo/icon-only.svg";
 
 			<div class="footer-links">
 				<router-link to="/">Trang chủ</router-link>
-				<a
-					href="https://github.com/Quocdev03/Url-Shortener"
-					target="_blank"
-				>
-					API Docs
-				</a>
+				<router-link to="/shorten">Rút gọn link</router-link>
 				<a href="https://github.com/Quocdev03" target="_blank">
 					Github
 				</a>
@@ -31,7 +26,7 @@ import logo from "../assets/logo/icon-only.svg";
 <style scoped>
 .footer {
 	width: 100%;
-	background-color: rgba(255, 255, 255, 0.8);
+	background-color: rgba(255, 255, 255, 0.5);
 	backdrop-filter: blur(12px);
 	-webkit-backdrop-filter: blur(12px);
 	border-top: 1px solid rgba(226, 232, 240, 0.7);

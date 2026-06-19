@@ -74,28 +74,6 @@ async function countAnalyticsByQuery({ search, urlId, userId }) {
 }
 
 /**
- * Lấy số clicks cho mỗi URL của user
- * @param {number} userId - ID của user
- * @returns {Promise<Object>} - Map {urlId: clickCount}
- */
-async function getClickCountsByUserId(userId) {
-	const [rows] = await db.query(
-		`SELECT u.id, COUNT(a.id) AS clicks
-		 FROM urls u
-		 LEFT JOIN analytics a ON u.id = a.url_id
-		 WHERE u.user_id = ?
-		 GROUP BY u.id`,
-		[userId],
-	);
-
-	const clickMap = {};
-	rows.forEach((row) => {
-		clickMap[row.id] = row.clicks;
-	});
-	return clickMap;
-}
-
-/**
  * Lấy danh sách analytics với lọc, tìm kiếm, sắp xếp, phân trang
  * @param {Object} options - {search, urlId, userId, sortBy, order, offset, limit}
  * @returns {Promise<Array>} - Mảng analytics records
