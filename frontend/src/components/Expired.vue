@@ -59,7 +59,7 @@ onUnmounted(() => {
 				</p>
 			</div>
 
-			<button class="btn-home-premium" @click="goHome">
+			<button class="btn btn-primary btn-block" @click="goHome">
 				<Home
 					:size="18"
 					style="margin-right: 8px; vertical-align: middle"
@@ -83,12 +83,12 @@ onUnmounted(() => {
 }
 
 .expired-card {
-	background: rgba(255, 255, 255, 0.75);
-	backdrop-filter: blur(20px);
-	-webkit-backdrop-filter: blur(20px);
+	background: var(--bg-card);
+	backdrop-filter: var(--glass-blur);
+	-webkit-backdrop-filter: var(--glass-blur);
 	padding: 50px 40px;
 	border-radius: 24px;
-	box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+	box-shadow: var(--shadow-xl);
 	border: 1px solid rgba(255, 255, 255, 0.6);
 	width: 100%;
 	max-width: 480px;
@@ -119,7 +119,7 @@ onUnmounted(() => {
 	width: 90px;
 	height: 90px;
 	border-radius: 50%;
-	background: rgba(239, 68, 68, 0.08);
+	background: var(--danger-light);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -136,7 +136,7 @@ onUnmounted(() => {
 }
 
 .clock-icon {
-	color: #ef4444;
+	color: var(--danger);
 	animation: spinSlow 12s linear infinite;
 }
 
@@ -147,11 +147,11 @@ onUnmounted(() => {
 }
 
 .expired-title {
-	font-weight: 800;
-	font-size: 30px;
+	font-weight: var(--font-weight-extrabold);
+	font-size: var(--font-size-3xl);
 	line-height: 38px;
 	margin: 0 0 12px 0;
-	background: linear-gradient(135deg, #df3333 0%, #dc2626 50%, #991b1b 100%);
+	background: linear-gradient(135deg, #df3333 0%, var(--danger) 50%, #991b1b 100%);
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 	background-clip: text;
@@ -159,8 +159,8 @@ onUnmounted(() => {
 }
 
 .expired-subtitle {
-	color: #64748b;
-	font-size: 15px;
+	color: var(--text-muted);
+	font-size: var(--font-size-base);
 	line-height: 1.6;
 	margin: 0 0 32px 0;
 }
@@ -168,7 +168,7 @@ onUnmounted(() => {
 .countdown-container {
 	width: 100%;
 	background: #f8fafc;
-	border: 1px solid #e2e8f0;
+	border: 1px solid var(--border-color);
 	border-radius: 16px;
 	padding: 18px;
 	margin-bottom: 30px;
@@ -178,7 +178,7 @@ onUnmounted(() => {
 .countdown-progress-bar {
 	width: 100%;
 	height: 6px;
-	background: #e2e8f0;
+	background: var(--border-color);
 	border-radius: 99px;
 	overflow: hidden;
 	margin-bottom: 12px;
@@ -186,48 +186,21 @@ onUnmounted(() => {
 
 .progress-fill {
 	height: 100%;
-	background: linear-gradient(90deg, #fca5a5, #ef4444);
+	background: linear-gradient(90deg, #fca5a5, var(--danger));
 	border-radius: 99px;
 	transition: width 1s linear;
 }
 
 .countdown-text {
 	font-size: 13.5px;
-	color: #475569;
+	color: var(--secondary);
 	margin: 0;
-	font-weight: 500;
+	font-weight: var(--font-weight-medium);
 }
 
 .time-highlight {
-	font-weight: 700;
-	color: #ef4444;
+	font-weight: var(--font-weight-bold);
+	color: var(--danger);
 	font-size: 15px;
-}
-
-.btn-home-premium {
-	width: 100%;
-	background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-	color: white;
-	border: none;
-	padding: 14px 24px;
-	border-radius: 14px;
-	font-weight: 600;
-	font-size: 15px;
-	cursor: pointer;
-	transition: all 0.3s ease;
-	box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.btn-home-premium:hover {
-	transform: translateY(-2px);
-	box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
-	background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-}
-
-.btn-home-premium:active {
-	transform: translateY(0);
 }
 </style>

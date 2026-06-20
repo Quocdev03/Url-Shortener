@@ -55,6 +55,9 @@ onUnmounted(() => {
 			<router-link to="/" class="nav-link" exact-active-class="active">
 				Trang chủ
 			</router-link>
+			<router-link to="/about" class="nav-link" active-class="active">
+				Giới thiệu
+			</router-link>
 			<router-link to="/shorten" class="nav-link" active-class="active">
 				Rút gọn link
 			</router-link>
@@ -137,18 +140,18 @@ onUnmounted(() => {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin-bottom: 20px;
+	margin-bottom: var(--space-4);
 	padding: 15px 35px;
 	height: 75px;
 	background-color: rgba(255, 255, 255, 0.5);
-	backdrop-filter: blur(12px);
-	-webkit-backdrop-filter: blur(12px);
+	backdrop-filter: var(--glass-blur);
+	-webkit-backdrop-filter: var(--glass-blur);
 	position: fixed;
 	top: 0;
 	left: 0;
 	right: 0;
 	z-index: 10;
-	border-bottom: 1px solid #dadee0;
+	border-bottom: 1px solid var(--border-color);
 }
 .header-auth {
 	display: flex;
@@ -188,8 +191,8 @@ onUnmounted(() => {
 
 .nav-link {
 	font-size: 15px;
-	font-weight: 600;
-	color: #64748b;
+	font-weight: var(--font-weight-semibold);
+	color: var(--text-muted);
 	text-decoration: none;
 	padding: 15px 18px;
 	border-radius: 6px;
@@ -197,13 +200,13 @@ onUnmounted(() => {
 }
 
 .nav-link:hover {
-	color: #0f172a;
+	color: var(--text-main);
 	background: rgba(15, 23, 42, 0.04);
 }
 
 .nav-link.active {
-	color: #4261ed;
-	background: rgba(66, 97, 237, 0.08);
+	color: var(--primary);
+	background: var(--primary-light);
 }
 
 /* User Profile dropdown menu styling */
@@ -231,25 +234,25 @@ onUnmounted(() => {
 	width: 36px;
 	height: 36px;
 	border-radius: 50%;
-	background: linear-gradient(135deg, #00c0fa 0%, #4261ed 100%);
+	background: var(--primary-gradient);
 	color: white;
-	font-weight: 700;
-	font-size: 16px;
+	font-weight: var(--font-weight-bold);
+	font-size: var(--font-size-base);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	box-shadow: 0 2px 10px rgba(66, 97, 237, 0.25);
+	box-shadow: 0 2px 10px rgba(37, 99, 235, 0.25);
 	border: 2px solid white;
 }
 
 .chevron-icon {
 	font-size: 10px;
-	color: #64748b;
+	color: var(--text-muted);
 	transition: transform 0.25s ease;
 }
 
 .user-avatar-trigger:focus-visible {
-	outline: 2px solid #4261ed;
+	outline: 2px solid var(--primary);
 	outline-offset: 2px;
 }
 
@@ -258,12 +261,12 @@ onUnmounted(() => {
 	top: 50px;
 	right: 0;
 	width: 220px;
-	background: rgba(255, 255, 255, 0.85);
-	backdrop-filter: blur(16px);
-	-webkit-backdrop-filter: blur(16px);
+	background: var(--bg-card);
+	backdrop-filter: var(--glass-blur);
+	-webkit-backdrop-filter: var(--glass-blur);
 	border: 1px solid rgba(226, 232, 240, 0.8);
 	border-radius: 14px;
-	box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+	box-shadow: var(--shadow-lg);
 	padding: 8px;
 	z-index: 100;
 	animation: slideDownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -289,8 +292,8 @@ onUnmounted(() => {
 
 .dropdown-email {
 	font-size: 13px;
-	font-weight: 700;
-	color: #0f172a;
+	font-weight: var(--font-weight-bold);
+	color: var(--text-main);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -298,25 +301,25 @@ onUnmounted(() => {
 
 .role-badge-mini {
 	font-size: 10px;
-	font-weight: 700;
+	font-weight: var(--font-weight-bold);
 	padding: 2px 6px;
 	border-radius: 20px;
 	width: fit-content;
 }
 
 .role-badge-mini.role-user {
-	background: rgba(66, 97, 237, 0.1);
-	color: #4261ed;
+	background: var(--primary-light);
+	color: var(--primary);
 }
 
 .role-badge-mini.role-admin {
-	background: rgba(220, 38, 38, 0.1);
-	color: #dc2626;
+	background: var(--danger-light);
+	color: var(--danger);
 }
 
 .dropdown-divider {
 	height: 1px;
-	background: rgba(226, 232, 240, 0.8);
+	background: var(--border-color);
 	margin: 6px 0;
 }
 
@@ -325,9 +328,9 @@ onUnmounted(() => {
 	align-items: center;
 	gap: 10px;
 	padding: 10px 12px;
-	font-size: 14px;
-	font-weight: 600;
-	color: #475569;
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-semibold);
+	color: var(--secondary);
 	text-decoration: none;
 	border-radius: 8px;
 	width: 100%;
@@ -340,16 +343,16 @@ onUnmounted(() => {
 
 .dropdown-item:hover {
 	background: rgba(15, 23, 42, 0.04);
-	color: #0f172a;
+	color: var(--text-main);
 }
 
 .dropdown-item.logout-item {
-	color: #dc2626;
+	color: var(--danger);
 }
 
 .dropdown-item.logout-item:hover {
-	background: rgba(220, 38, 38, 0.08);
-	color: #dc2626;
+	background: var(--danger-light);
+	color: var(--danger);
 }
 
 .item-icon {
@@ -366,12 +369,12 @@ onUnmounted(() => {
 	}
 	.nav-link {
 		padding: 6px 12px;
-		font-size: 14px;
+		font-size: var(--font-size-sm);
 	}
 
 	.header-logo > a >img{
 		max-width: 200px;
-}
+	}
 }
 
 @media screen and (max-width: 576px) {

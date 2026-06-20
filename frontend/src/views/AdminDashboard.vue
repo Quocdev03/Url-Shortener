@@ -401,7 +401,7 @@ const getUserEmail = (userId) => {
 				</div>
 				<button
 					@click="openCreateUserModal"
-					class="btn btn-primary add-btn"
+					class="btn btn-primary"
 				>
 					<Plus :size="16" style="display: inline-block; vertical-align: middle; margin-right: 4px;" /> Thêm Người Dùng
 				</button>
@@ -452,7 +452,7 @@ const getUserEmail = (userId) => {
 								<!-- Disable nếu là admin (gồm cả bản thân và admin khác) -->
 								<button
 									@click="openEditUserModal(user)"
-									class="action-btn edit-btn"
+									class="btn btn-outline btn-sm"
 									:disabled="user.role === 'admin'"
 									:title="
 										user.role === 'admin'
@@ -464,7 +464,7 @@ const getUserEmail = (userId) => {
 								</button>
 								<button
 									@click="confirmDelete('user', user)"
-									class="action-btn delete-btn"
+									class="btn btn-danger btn-sm"
 									:disabled="user.role === 'admin'"
 									:title="
 										user.role === 'admin'
@@ -487,7 +487,7 @@ const getUserEmail = (userId) => {
 						fetchUsers();
 					"
 					:disabled="userPage === 1"
-					class="page-btn"
+					class="btn btn-outline btn-sm"
 				>
 					<ChevronLeft :size="14" style="display: inline-block; vertical-align: middle;" /> Trước
 				</button>
@@ -502,7 +502,7 @@ const getUserEmail = (userId) => {
 						fetchUsers();
 					"
 					:disabled="userPage === adminStore.userTotalPages"
-					class="page-btn"
+					class="btn btn-outline btn-sm"
 				>
 					Sau <ChevronRight :size="14" style="display: inline-block; vertical-align: middle;" />
 				</button>
@@ -536,7 +536,7 @@ const getUserEmail = (userId) => {
 				</div>
 				<button
 					@click="openCreateUrlModal"
-					class="btn btn-primary add-btn"
+					class="btn btn-primary"
 				>
 					<Plus :size="16" style="display: inline-block; vertical-align: middle; margin-right: 4px;" /> Tạo Link URL mới
 				</button>
@@ -604,14 +604,14 @@ const getUserEmail = (userId) => {
 							<td class="actions-cell">
 								<button
 									@click="openEditUrlModal(url)"
-									class="action-btn edit-btn"
+									class="btn btn-outline btn-sm"
 									title="Sửa liên kết"
 								>
 									<Edit :size="14" style="display: inline-block; vertical-align: middle; margin-right: 4px;" /> Sửa
 								</button>
 								<button
 									@click="confirmDelete('url', url)"
-									class="action-btn delete-btn"
+									class="btn btn-danger btn-sm"
 									title="Xoá liên kết"
 								>
 									<Trash2 :size="14" style="display: inline-block; vertical-align: middle; margin-right: 4px;" /> Xoá
@@ -629,7 +629,7 @@ const getUserEmail = (userId) => {
 						fetchUrls();
 					"
 					:disabled="urlPage === 1"
-					class="page-btn"
+					class="btn btn-outline btn-sm"
 				>
 					<ChevronLeft :size="14" style="display: inline-block; vertical-align: middle;" /> Trước
 				</button>
@@ -643,7 +643,7 @@ const getUserEmail = (userId) => {
 						fetchUrls();
 					"
 					:disabled="urlPage === adminStore.urlTotalPages"
-					class="page-btn"
+					class="btn btn-outline btn-sm"
 				>
 					Sau <ChevronRight :size="14" style="display: inline-block; vertical-align: middle;" />
 				</button>
@@ -855,7 +855,7 @@ const getUserEmail = (userId) => {
 			<div class="glass-card modal-card confirm-modal">
 				<div class="modal-header">
 					<h2>
-						<AlertTriangle :size="20" style="display: inline-block; vertical-align: middle; margin-right: 6px; color: #ef4444;" />
+						<AlertTriangle :size="20" style="display: inline-block; vertical-align: middle; margin-right: 6px; color: var(--danger);" />
 						Xác nhận xoá dữ liệu
 					</h2>
 					<button
@@ -899,7 +899,7 @@ const getUserEmail = (userId) => {
 					</button>
 					<button
 						@click="handleDeleteConfirm"
-						class="btn btn-danger-filled"
+						class="btn btn-danger"
 						:disabled="isSubmitting"
 					>
 						{{
@@ -927,18 +927,19 @@ const getUserEmail = (userId) => {
 
 .dashboard-header h1.gradient-text {
 	font-size: 34px;
-	font-weight: 800;
-	background: linear-gradient(135deg, #00b3fa 0%, #1a80e5 50%, #4261ed 100%);
+	font-weight: var(--font-weight-extrabold);
+	background: var(--primary-gradient);
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 	background-clip: text;
 	margin: 5px 0;
 	line-height: 1.4;
+	color: transparent;
 }
 
 .subtitle {
 	font-size: 15px;
-	color: #64748b;
+	color: var(--text-muted);
 	margin-bottom: 25px;
 }
 
@@ -948,14 +949,14 @@ const getUserEmail = (userId) => {
 	background: rgba(241, 245, 249, 0.8);
 	padding: 5px;
 	border-radius: 14px;
-	border: 1px solid rgba(226, 232, 240, 0.8);
+	border: 1px solid var(--border-color);
 }
 
 .tab-btn {
 	padding: 10px 24px;
 	font-size: 14px;
-	font-weight: 600;
-	color: #64748b;
+	font-weight: var(--font-weight-semibold);
+	color: var(--text-muted);
 	border: none;
 	background: transparent;
 	cursor: pointer;
@@ -964,9 +965,9 @@ const getUserEmail = (userId) => {
 }
 
 .tab-btn.active {
-	color: #4261ed;
+	color: var(--primary);
 	background: white;
-	box-shadow: 0 4px 12px rgba(66, 97, 237, 0.08);
+	box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
 }
 
 /* Search and actions */
@@ -1002,14 +1003,14 @@ const getUserEmail = (userId) => {
 	top: 50%;
 	transform: translateY(-50%);
 	font-size: 14px;
-	color: #94a3b8;
+	color: var(--text-disabled);
 }
 
 .search-box input {
 	width: 100%;
 	padding: 10px 14px 10px 40px;
 	font-size: 14px;
-	border: 2px solid #e2e8f0;
+	border: 2px solid var(--border-color);
 	border-radius: 12px;
 	outline: none;
 	background: rgba(255, 255, 255, 0.9);
@@ -1017,8 +1018,8 @@ const getUserEmail = (userId) => {
 }
 
 .search-box input:focus {
-	border-color: #4261ed;
-	box-shadow: 0 0 0 3px rgba(66, 97, 237, 0.15);
+	border-color: var(--primary);
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .filter-select-wrapper {
@@ -1028,7 +1029,7 @@ const getUserEmail = (userId) => {
 .filter-select {
 	padding: 10px 14px;
 	font-size: 14px;
-	border: 2px solid #e2e8f0;
+	border: 2px solid var(--border-color);
 	border-radius: 12px;
 	outline: none;
 	background: white;
@@ -1038,25 +1039,10 @@ const getUserEmail = (userId) => {
 }
 
 .filter-select:focus {
-	border-color: #4261ed;
-}
-
-.add-btn {
-	padding: 11px 20px;
-	font-size: 14px;
-	font-weight: 600;
+	border-color: var(--primary);
 }
 
 /* Glass Card & Tables */
-.glass-card {
-	background: rgba(255, 255, 255, 0.75);
-	backdrop-filter: blur(12px);
-	-webkit-backdrop-filter: blur(12px);
-	border-radius: 16px;
-	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
-	border: 1px solid rgba(255, 255, 255, 0.6);
-}
-
 .table-wrapper {
 	position: relative;
 	overflow-x: auto;
@@ -1074,16 +1060,16 @@ const getUserEmail = (userId) => {
 	justify-content: center;
 	align-items: center;
 	font-size: 14px;
-	font-weight: 600;
-	color: #4261ed;
+	font-weight: var(--font-weight-semibold);
+	color: var(--primary);
 	z-index: 5;
 }
 
 .spinner {
 	width: 18px;
 	height: 18px;
-	border: 2px solid rgba(66, 97, 237, 0.2);
-	border-top-color: #4261ed;
+	border: 2px solid rgba(37, 99, 235, 0.2);
+	border-top-color: var(--primary);
 	border-radius: 50%;
 	display: inline-block;
 	animation: spin 0.8s linear infinite;
@@ -1106,12 +1092,12 @@ const getUserEmail = (userId) => {
 .dashboard-table th,
 .dashboard-table td {
 	padding: 16px 20px;
-	border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+	border-bottom: 1px solid var(--border-color);
 }
 
 .dashboard-table th {
-	font-weight: 700;
-	color: #475569;
+	font-weight: var(--font-weight-bold);
+	color: var(--secondary);
 	background: rgba(248, 250, 252, 0.5);
 }
 
@@ -1124,13 +1110,13 @@ const getUserEmail = (userId) => {
 }
 
 .id-cell {
-	font-weight: 600;
-	color: #64748b;
+	font-weight: var(--font-weight-semibold);
+	color: var(--text-muted);
 }
 
 .email-cell {
-	font-weight: 600;
-	color: #1e293b;
+	font-weight: var(--font-weight-semibold);
+	color: var(--text-main);
 	max-width: 250px;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -1138,22 +1124,22 @@ const getUserEmail = (userId) => {
 }
 
 .code-cell {
-	font-weight: 700;
+	font-weight: var(--font-weight-bold);
 }
 
 .short-link {
-	color: #4261ed;
+	color: var(--primary);
 	text-decoration: none;
-	border-bottom: 1px dashed rgba(66, 97, 237, 0.4);
+	border-bottom: 1px dashed rgba(37, 99, 235, 0.4);
 }
 
 .short-link:hover {
-	color: #1a80e5;
+	color: var(--primary-hover);
 	border-bottom-style: solid;
 }
 
 .url-cell {
-	color: #64748b;
+	color: var(--text-muted);
 	max-width: 260px;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -1161,18 +1147,18 @@ const getUserEmail = (userId) => {
 }
 
 .clicks-cell {
-	font-weight: 600;
-	color: #0f172a;
+	font-weight: var(--font-weight-semibold);
+	color: var(--text-main);
 }
 
 .date-cell {
-	color: #64748b;
+	color: var(--text-muted);
 	font-size: 13px;
 }
 
 .empty-row {
 	text-align: center;
-	color: #94a3b8;
+	color: var(--text-disabled);
 	padding: 40px !important;
 }
 
@@ -1181,72 +1167,39 @@ const getUserEmail = (userId) => {
 .status-badge {
 	padding: 4px 10px;
 	font-size: 12px;
-	font-weight: 600;
+	font-weight: var(--font-weight-semibold);
 	border-radius: 20px;
 	display: inline-block;
 }
 
 .role-user {
-	background: #eff6ff;
-	color: #3b82f6;
-	border: 1px solid rgba(59, 130, 246, 0.15);
+	background: var(--primary-light);
+	color: var(--primary);
+	border: 1px solid rgba(37, 99, 235, 0.15);
 }
 
 .role-admin {
-	background: #fef2f2;
-	color: #ef4444;
+	background: var(--danger-light);
+	color: var(--danger);
 	border: 1px solid rgba(239, 68, 68, 0.15);
 }
 
 .status-active {
-	background: #f0fdf4;
-	color: #22c55e;
-	border: 1px solid rgba(34, 197, 94, 0.15);
+	background: var(--success-light);
+	color: var(--success);
+	border: 1px solid rgba(16, 185, 129, 0.15);
 }
 
 .status-expired {
 	background: #f8fafc;
-	color: #94a3b8;
-	border: 1px solid rgba(148, 163, 184, 0.15);
+	color: var(--text-disabled);
+	border: 1px solid var(--border-color);
 }
 
 /* Action buttons inside table */
 .actions-cell {
 	display: flex;
 	gap: 8px;
-}
-
-.action-btn {
-	padding: 6px 12px;
-	font-size: 13px;
-	font-weight: 600;
-	border-radius: 8px;
-	border: none;
-	cursor: pointer;
-	transition: all 0.2s ease;
-}
-
-.edit-btn {
-	background: #eff6ff;
-	color: #2563eb;
-}
-
-.edit-btn:hover:not(:disabled) {
-	background: #dbeafe;
-}
-
-.delete-btn {
-	background: #fff5f5;
-	color: #e53e3e;
-}
-
-.delete-btn:hover:not(:disabled) {
-	background: #fed7d7;
-}
-
-.action-btn:disabled {
-	opacity: 0.5;
-	cursor: not-allowed;
 }
 
 /* Pagination */
@@ -1258,45 +1211,23 @@ const getUserEmail = (userId) => {
 	margin-top: 10px;
 }
 
-.page-btn {
-	padding: 8px 16px;
-	font-size: 13px;
-	font-weight: 600;
-	color: #475569;
-	background: white;
-	border: 1px solid #e2e8f0;
-	border-radius: 10px;
-	cursor: pointer;
-	transition: all 0.2s ease;
-}
-
-.page-btn:hover:not(:disabled) {
-	border-color: #cbd5e1;
-	background: #f8fafc;
-}
-
-.page-btn:disabled {
-	opacity: 0.5;
-	cursor: not-allowed;
-}
-
 .page-info {
 	font-size: 13px;
-	color: #64748b;
-	font-weight: 600;
+	color: var(--text-muted);
+	font-weight: var(--font-weight-semibold);
 }
 
 /* ==========================================
-MODAL STYLE (GLASSMORPHIC)
-========================================== */
+   MODAL STYLE (GLASSMORPHIC)
+   ========================================== */
 .modal-overlay {
 	position: fixed;
 	top: 0;
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background: rgba(15, 23, 42, 0.4);
-	backdrop-filter: blur(8px);
+	background: rgba(15, 23, 42, 0.2);
+	backdrop-filter: var(--glass-blur);
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -1308,8 +1239,7 @@ MODAL STYLE (GLASSMORPHIC)
 	width: 100%;
 	max-width: 480px;
 	padding: 30px;
-	background: rgba(255, 255, 255, 0.9);
-	box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+	box-shadow: var(--shadow-xl);
 	animation: modalSlideUp 0.3s ease-out;
 }
 
@@ -1328,15 +1258,15 @@ MODAL STYLE (GLASSMORPHIC)
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	border-bottom: 2px solid #f1f5f9;
+	border-bottom: 2px solid var(--border-color);
 	padding-bottom: 14px;
 	margin-bottom: 20px;
 }
 
 .modal-header h2 {
 	font-size: 18px;
-	font-weight: 700;
-	color: #1e293b;
+	font-weight: var(--font-weight-bold);
+	color: var(--text-main);
 	margin: 0;
 }
 
@@ -1344,13 +1274,13 @@ MODAL STYLE (GLASSMORPHIC)
 	background: none;
 	border: none;
 	font-size: 18px;
-	color: #94a3b8;
+	color: var(--text-disabled);
 	cursor: pointer;
 	transition: color 0.2s ease;
 }
 
 .close-modal-btn:hover {
-	color: #0f172a;
+	color: var(--text-main);
 }
 
 .modal-form {
@@ -1367,15 +1297,15 @@ MODAL STYLE (GLASSMORPHIC)
 
 .form-group label {
 	font-size: 13px;
-	font-weight: 600;
-	color: #475569;
+	font-weight: var(--font-weight-semibold);
+	color: var(--secondary);
 }
 
 .form-group input,
 .modal-select {
 	padding: 11px 14px;
 	font-size: 14px;
-	border: 2px solid #e2e8f0;
+	border: 2px solid var(--border-color);
 	border-radius: 10px;
 	outline: none;
 	width: 100%;
@@ -1385,7 +1315,7 @@ MODAL STYLE (GLASSMORPHIC)
 
 .form-group input:focus,
 .modal-select:focus {
-	border-color: #4261ed;
+	border-color: var(--primary);
 }
 
 .modal-footer {
@@ -1401,7 +1331,7 @@ MODAL STYLE (GLASSMORPHIC)
 }
 
 .modal-body {
-	color: #475569;
+	color: var(--secondary);
 	font-size: 14px;
 	line-height: 1.5;
 	margin-bottom: 20px;
@@ -1415,32 +1345,12 @@ MODAL STYLE (GLASSMORPHIC)
 }
 
 .alert-danger {
-	background: #fff5f5;
+	background: var(--danger-light);
 	border: 1px solid rgba(239, 68, 68, 0.2);
-	color: #c53030;
+	color: var(--danger);
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
-}
-
-.btn-danger-filled {
-	background: #ef4444;
-	color: white;
-	padding: 10px 20px;
-	font-weight: 600;
-	border-radius: 10px;
-	border: none;
-	cursor: pointer;
-	transition: background 0.3s ease;
-}
-
-.btn-danger-filled:hover:not(:disabled) {
-	background: #dc2626;
-}
-
-.btn-danger-filled:disabled {
-	opacity: 0.6;
-	cursor: not-allowed;
 }
 
 /* Responsiveness */

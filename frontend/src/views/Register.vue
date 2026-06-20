@@ -49,11 +49,11 @@ const handleRegister = async () => {
 };
 </script>
 <template>
-	<main class="auth">
-		<div class="auth-container">
-			<h1 class="auth-title">Đăng Ký</h1>
+	<main class="auth-layout">
+		<div class="auth-layout-container">
+			<h1 class="auth-layout-title">Đăng Ký</h1>
 
-			<div class="auth-input">
+			<div class="auth-layout-input">
 				<input
 					type="email"
 					v-model="email"
@@ -62,7 +62,7 @@ const handleRegister = async () => {
 				/>
 			</div>
 
-			<div class="auth-input password-input-wrapper">
+			<div class="auth-layout-input password-input-wrapper">
 				<input
 					:type="showPassword ? 'text' : 'password'"
 					v-model="password"
@@ -80,7 +80,7 @@ const handleRegister = async () => {
 				</button>
 			</div>
 
-			<div class="auth-input password-input-wrapper">
+			<div class="auth-layout-input password-input-wrapper">
 				<input
 					:type="showConfirmPassword ? 'text' : 'password'"
 					v-model="confirmPassword"
@@ -98,10 +98,10 @@ const handleRegister = async () => {
 				</button>
 			</div>
 
-			<p v-if="errorMessage" class="auth-error">⚠️ {{ errorMessage }}</p>
+			<p v-if="errorMessage" class="auth-layout-error">⚠️ {{ errorMessage }}</p>
 
 			<button
-				class="btn btn-primary auth-btn"
+				class="btn btn-primary btn-block"
 				@click="handleRegister"
 				:disabled="authStore.loadingState"
 			>
@@ -110,128 +110,10 @@ const handleRegister = async () => {
 				}}
 			</button>
 
-			<p class="auth-info">
+			<p class="auth-layout-info">
 				Đã có tài khoản?
 				<router-link to="/login">Đăng nhập</router-link>
 			</p>
 		</div>
 	</main>
 </template>
-
-<style scoped>
-.auth {
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	gap: 1rem;
-	width: 100%;
-	min-height: calc(
-		100vh - 195px
-	); /* viewport min-height minus header height (75px) and page padding block (120px) */
-}
-
-.auth-container {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-direction: column;
-	gap: 16px;
-	background: rgba(255, 255, 255, 0.75);
-	backdrop-filter: blur(12px);
-	-webkit-backdrop-filter: blur(12px);
-	padding: 40px;
-	border-radius: 16px;
-	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-	border: 1px solid rgba(255, 255, 255, 0.5);
-	width: 100%;
-	max-width: 450px;
-}
-
-.auth-title {
-	font-weight: 800;
-	font-size: 35px;
-	line-height: 40px;
-	background: linear-gradient(135deg, #00c0fa 0%, #1a80e5 50%, #4261ed 100%);
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
-	background-clip: text;
-	color: transparent;
-	padding-bottom: 17px;
-}
-
-.auth-input {
-	width: 100%;
-}
-
-.auth-input input {
-	width: 100%;
-	padding: 14px 16px;
-	font-size: 15px;
-	color: #333;
-	border: 2px solid #e2e8f0;
-	border-radius: 10px;
-	outline: none;
-	transition:
-		border-color 0.3s ease,
-		box-shadow 0.3s ease;
-}
-
-.auth-input input:focus {
-	border-color: #4261ed;
-	box-shadow: 0 0 0 3px rgba(66, 97, 237, 0.15);
-}
-
-.auth-input input::placeholder {
-	color: #94a3b8;
-}
-
-.auth-btn {
-	width: 100%;
-	padding: 14px;
-	font-size: 16px;
-	font-weight: 600;
-	cursor: pointer;
-	border: none;
-	border-radius: 10px;
-	background: #4261ed;
-	color: white;
-	transition: background 0.3s ease;
-	margin-top: 8px;
-}
-
-.auth-btn:hover {
-	background: #1a80e5;
-}
-
-.auth-btn:disabled {
-	background: #94a3b8;
-	cursor: not-allowed;
-}
-
-.auth-error {
-	color: #dc2626;
-	font-size: 14px;
-	align-self: flex-start;
-	margin: 0;
-}
-
-.auth-info {
-	font-size: 14px;
-	color: #64748b;
-	margin-top: 12px;
-	line-height: 20px;
-}
-
-.auth-info a {
-	color: #4261ed;
-	text-decoration: none;
-	font-weight: 600;
-	transition: color 0.2s ease;
-}
-
-.auth-info a:hover {
-	color: #1a80e5;
-	text-decoration: underline;
-}
-</style>

@@ -15,14 +15,13 @@ import {
 	Monitor,
 	Smartphone,
 	Tablet,
-	Tv,
-	Terminal,
 	Share2,
 	Trophy,
 	ChevronRight,
 	History,
 	ChevronLeft,
-	Globe
+	Globe,
+	Terminal
 } from "@lucide/vue";
 import { parseUA, formatReferer } from "../utils/uaParser";
 
@@ -37,7 +36,6 @@ const {
 	totalLogs,
 	loading: logsLoading,
 	statsLogs,
-	statsLoading,
 } = storeToRefs(analyticsStore);
 
 // State
@@ -259,7 +257,7 @@ const selectSpecificUrl = (id) => {
 
 			<div class="controls-group">
 				<!-- Dropdown chọn link -->
-				<div class="select-wrapper glass">
+				<div class="select-wrapper">
 					<select v-model="selectedUrlId" class="url-selector">
 						<option value="">Tất cả các liên kết</option>
 						<option
@@ -276,7 +274,7 @@ const selectSpecificUrl = (id) => {
 					</select>
 				</div>
 				<button
-					class="btn-refresh glass"
+					class="btn-refresh"
 					@click="refreshAll"
 					title="Làm mới dữ liệu"
 				>
@@ -287,36 +285,36 @@ const selectSpecificUrl = (id) => {
 
 		<!-- Thống kê KPIs -->
 		<div class="kpi-grid">
-			<div class="kpi-card glass">
+			<div class="kpi-card glass-card">
 				<div class="kpi-icon clicks">
-					<MousePointerClick :size="20" style="color:#2563eb;" />
+					<MousePointerClick :size="20" />
 				</div>
 				<div class="kpi-content">
 					<span class="kpi-label">Tổng lượt click</span>
 					<h3 class="kpi-value">{{ kpis.totalClicks }}</h3>
 				</div>
 			</div>
-			<div class="kpi-card glass">
+			<div class="kpi-card glass-card">
 				<div class="kpi-icon links">
-					<Link2 :size="20" style="color:#0ea5e9;" />
+					<Link2 :size="20" />
 				</div>
 				<div class="kpi-content">
 					<span class="kpi-label">Tổng số liên kết</span>
 					<h3 class="kpi-value">{{ kpis.totalLinks }}</h3>
 				</div>
 			</div>
-			<div class="kpi-card glass">
+			<div class="kpi-card glass-card">
 				<div class="kpi-icon active">
-					<Zap :size="20" style="color:#eab308;" />
+					<Zap :size="20" />
 				</div>
 				<div class="kpi-content">
 					<span class="kpi-label">Liên kết đang hoạt động</span>
 					<h3 class="kpi-value">{{ kpis.activeLinks }}</h3>
 				</div>
 			</div>
-			<div class="kpi-card glass">
+			<div class="kpi-card glass-card">
 				<div class="kpi-icon average">
-					<BarChart3 :size="20" style="color:#10b981;" />
+					<BarChart3 :size="20" />
 				</div>
 				<div class="kpi-content">
 					<span class="kpi-label">Clicks trung bình</span>
@@ -331,9 +329,9 @@ const selectSpecificUrl = (id) => {
 		<!-- Charts & Breakdowns -->
 		<div class="charts-grid">
 			<!-- Device Breakdown -->
-			<div class="chart-card glass">
+			<div class="chart-card glass-card">
 				<h3>
-					<Monitor :size="16" style="display:inline-block;vertical-align:middle;margin-right:6px;color:#2563eb;" />
+					<Monitor :size="16" style="display:inline-block;vertical-align:middle;margin-right:6px;color:var(--primary);" />
 					Phân bố thiết bị
 				</h3>
 				<div class="chart-content" v-if="statsLogs.length">
@@ -377,9 +375,9 @@ const selectSpecificUrl = (id) => {
 			</div>
 
 			<!-- Browser Breakdown -->
-			<div class="chart-card glass">
+			<div class="chart-card glass-card">
 				<h3>
-					<Globe :size="16" style="display:inline-block;vertical-align:middle;margin-right:6px;color:#eab308;" />
+					<Globe :size="16" style="display:inline-block;vertical-align:middle;margin-right:6px;color:var(--warning);" />
 					Trình duyệt sử dụng
 				</h3>
 				<div class="chart-content" v-if="statsLogs.length">
@@ -408,9 +406,9 @@ const selectSpecificUrl = (id) => {
 			</div>
 
 			<!-- OS Breakdown -->
-			<div class="chart-card glass">
+			<div class="chart-card glass-card">
 				<h3>
-					<Terminal :size="16" style="display:inline-block;vertical-align:middle;margin-right:6px;color:#a855f7;" />
+					<Terminal :size="16" style="display:inline-block;vertical-align:middle;margin-right:6px;color:var(--secondary);" />
 					Hệ điều hành
 				</h3>
 				<div class="chart-content" v-if="statsLogs.length">
@@ -439,9 +437,9 @@ const selectSpecificUrl = (id) => {
 			</div>
 
 			<!-- Referers / Sources -->
-			<div class="chart-card glass">
+			<div class="chart-card glass-card">
 				<h3>
-					<Share2 :size="16" style="display:inline-block;vertical-align:middle;margin-right:6px;color:#10b981;" />
+					<Share2 :size="16" style="display:inline-block;vertical-align:middle;margin-right:6px;color:var(--success);" />
 					Nguồn giới thiệu (Referer)
 				</h3>
 				<div class="chart-content" v-if="statsLogs.length">
@@ -474,13 +472,13 @@ const selectSpecificUrl = (id) => {
 			</div>
 		</div>
 
-		<!-- Top performing urls (only when overall view is selected) -->
+		<!-- Top performing urls -->
 		<div
-			class="top-urls-section glass"
+			class="top-urls-section glass-card"
 			v-if="!selectedUrlId && urlsList.length"
 		>
 			<h3>
-				<Trophy :size="18" style="display:inline-block;vertical-align:middle;margin-right:6px;color:#eab308;" />
+				<Trophy :size="18" style="display:inline-block;vertical-align:middle;margin-right:6px;color:var(--warning);" />
 				Top 5 liên kết hiệu quả nhất
 			</h3>
 			<div class="top-urls-list">
@@ -503,16 +501,16 @@ const selectSpecificUrl = (id) => {
 						<span class="url-clicks-badge"
 							>{{ url.clicks }} clicks</span
 						>
-						<ChevronRight :size="16" style="display:inline-block;vertical-align:middle;margin-left:4px;color:#64748b;" />
+						<ChevronRight :size="16" style="display:inline-block;vertical-align:middle;margin-left:4px;color:var(--text-muted);" />
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="logs-section glass">
+		<div class="logs-section glass-card">
 			<div class="logs-header">
 				<h3>
-					<History :size="18" style="display:inline-block;vertical-align:middle;margin-right:6px;color:#2563eb;" />
+					<History :size="18" style="display:inline-block;vertical-align:middle;margin-right:6px;color:var(--primary);" />
 					Nhật ký truy cập gần đây
 				</h3>
 				<div class="logs-search">
@@ -593,7 +591,7 @@ const selectSpecificUrl = (id) => {
 				<button
 					:disabled="currentPage === 1"
 					@click="currentPage--"
-					class="page-btn"
+					class="btn btn-outline btn-sm"
 				>
 					<ChevronLeft :size="14" style="display:inline-block;vertical-align:middle;" /> Trước
 				</button>
@@ -604,7 +602,7 @@ const selectSpecificUrl = (id) => {
 				<button
 					:disabled="currentPage === totalPages"
 					@click="currentPage++"
-					class="page-btn"
+					class="btn btn-outline btn-sm"
 				>
 					Sau <ChevronRight :size="14" style="display:inline-block;vertical-align:middle;" />
 				</button>
@@ -637,26 +635,27 @@ const selectSpecificUrl = (id) => {
 
 .title-group h1.gradient-text {
 	font-size: 34px;
-	font-weight: 800;
-	background: linear-gradient(135deg, #00b3fa 0%, #1a80e5 50%, #4261ed 100%);
+	font-weight: var(--font-weight-extrabold);
+	background: var(--primary-gradient);
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 	background-clip: text;
 	margin-top: 4px;
 	line-height: 1.4;
+	color: transparent;
 }
 
 .title-group p.subtitle {
 	font-size: 15px;
-	color: #64748b;
-	font-weight: 500;
+	color: var(--text-muted);
+	font-weight: var(--font-weight-medium);
 }
 
 .btn-back {
 	font-size: 14px;
-	color: #4261ed;
+	color: var(--primary);
 	text-decoration: none;
-	font-weight: 700;
+	font-weight: var(--font-weight-bold);
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
@@ -667,13 +666,8 @@ const selectSpecificUrl = (id) => {
 }
 
 .btn-back:hover {
-	color: #1a80e5;
+	color: var(--primary-hover);
 	transform: translateX(-4px);
-}
-
-.back-arrow {
-	font-size: 16px;
-	line-height: 1;
 }
 
 .controls-group {
@@ -686,25 +680,25 @@ const selectSpecificUrl = (id) => {
 	position: relative;
 	border-radius: 12px;
 	padding: 10px 16px;
-	border: 1px solid rgba(66, 97, 237, 0.2);
+	border: 1px solid rgba(37, 99, 235, 0.2);
 	display: flex;
 	align-items: center;
-	background: rgba(255, 255, 255, 0.45);
+	background: var(--bg-card);
 	transition:
 		border-color 0.2s,
 		box-shadow 0.2s;
 }
 
 .select-wrapper:focus-within {
-	border-color: #4261ed;
-	box-shadow: 0 0 0 4px rgba(66, 97, 237, 0.1);
+	border-color: var(--primary);
+	box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
 }
 
 .url-selector {
 	border: none;
 	font-size: 15px;
-	font-weight: 700;
-	color: #1e293b;
+	font-weight: var(--font-weight-bold);
+	color: var(--text-main);
 	outline: none;
 	background: transparent;
 	cursor: pointer;
@@ -716,7 +710,8 @@ const selectSpecificUrl = (id) => {
 	padding: 10px 16px;
 	cursor: pointer;
 	font-size: 16px;
-	border: 1px solid rgba(66, 97, 237, 0.2);
+	background: var(--bg-card);
+	border: 1px solid rgba(37, 99, 235, 0.2);
 	transition:
 		transform 0.2s,
 		background-color 0.2s,
@@ -727,16 +722,15 @@ const selectSpecificUrl = (id) => {
 }
 
 .btn-refresh:hover {
-	border-color: #4261ed;
-	background: rgba(66, 97, 237, 0.08);
+	border-color: var(--primary);
+	background: var(--primary-light);
 }
 
-.refresh-icon {
-	display: inline-block;
+.btn-refresh svg {
 	transition: transform 0.3s ease;
 }
 
-.btn-refresh:hover .refresh-icon {
+.btn-refresh:hover svg {
 	transform: rotate(180deg);
 }
 
@@ -759,35 +753,33 @@ const selectSpecificUrl = (id) => {
 
 .kpi-card:hover {
 	transform: translateY(-4px);
-	box-shadow: 0 12px 30px rgba(66, 97, 237, 0.06);
+	box-shadow: var(--shadow-lg);
 }
 
 .kpi-icon {
-	font-size: 20px;
 	width: 45px;
 	height: 45px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	border-radius: 12px;
-	font-weight: bold;
 }
 
 .kpi-icon.clicks {
-	background: rgba(59, 130, 246, 0.1);
-	color: #2563eb;
-	box-shadow: 0 4px 12px rgba(59, 130, 246, 0.05);
+	background: var(--primary-light);
+	color: var(--primary);
+	box-shadow: 0 4px 12px rgba(37, 99, 235, 0.05);
 }
 
 .kpi-icon.links {
-	background: rgba(245, 158, 11, 0.1);
-	color: #d97706;
+	background: var(--warning-light);
+	color: var(--warning);
 	box-shadow: 0 4px 12px rgba(245, 158, 11, 0.05);
 }
 
 .kpi-icon.active {
-	background: rgba(16, 185, 129, 0.1);
-	color: #059669;
+	background: var(--success-light);
+	color: var(--success);
 	box-shadow: 0 4px 12px rgba(16, 185, 129, 0.05);
 }
 
@@ -804,33 +796,22 @@ const selectSpecificUrl = (id) => {
 
 .kpi-label {
 	font-size: 13px;
-	color: #64748b;
-	font-weight: 600;
+	color: var(--text-muted);
+	font-weight: var(--font-weight-semibold);
 	text-transform: uppercase;
 }
 
 .kpi-value {
 	font-size: 26px;
-	font-weight: 800;
-	color: #1e293b;
+	font-weight: var(--font-weight-extrabold);
+	color: var(--text-main);
 	margin-top: 4px;
 }
 
 .kpi-value-unit {
 	font-size: 14px;
-	color: #94a3b8;
-	font-weight: 500;
-}
-
-/* Glass card (Glassmorphism) */
-.glass {
-	background: rgba(255, 255, 255, 0.45);
-	backdrop-filter: blur(20px);
-	-webkit-backdrop-filter: blur(20px);
-	border: 1px solid rgba(255, 255, 255, 0.6);
-	box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
-	border-radius: 16px;
-	padding: 15px;
+	color: var(--text-disabled);
+	font-weight: var(--font-weight-medium);
 }
 
 /* Charts grid */
@@ -842,17 +823,17 @@ const selectSpecificUrl = (id) => {
 
 .chart-card h3 {
 	font-size: 16px;
-	font-weight: 700;
-	color: #1e293b;
+	font-weight: var(--font-weight-bold);
+	color: var(--text-main);
 	margin-bottom: 24px;
-	border-bottom: 1px dashed rgba(66, 97, 237, 0.15);
+	border-bottom: 1px dashed rgba(37, 99, 235, 0.15);
 	padding-bottom: 12px;
 }
 
 .empty-chart {
 	text-align: center;
 	padding: 50px 0;
-	color: #94a3b8;
+	color: var(--text-disabled);
 	font-size: 14px;
 }
 
@@ -873,12 +854,12 @@ const selectSpecificUrl = (id) => {
 	display: flex;
 	justify-content: space-between;
 	font-size: 14px;
-	color: #475569;
-	font-weight: 700;
+	color: var(--secondary);
+	font-weight: var(--font-weight-bold);
 }
 
 .dist-bar-bg {
-	background: rgba(15, 23, 42, 0.05);
+	background: var(--border-color);
 	height: 8px;
 	border-radius: 99px;
 	overflow: hidden;
@@ -899,7 +880,7 @@ const selectSpecificUrl = (id) => {
 }
 
 .bg-green {
-	background: linear-gradient(90deg, #10b981, #34d399);
+	background: linear-gradient(90deg, var(--success), #34d399);
 }
 
 /* Device Breakdown details */
@@ -925,8 +906,8 @@ const selectSpecificUrl = (id) => {
 	align-items: center;
 	gap: 8px;
 	font-size: 14px;
-	color: #475569;
-	font-weight: 700;
+	color: var(--secondary);
+	font-weight: var(--font-weight-bold);
 	min-width: 120px;
 }
 
@@ -935,11 +916,11 @@ const selectSpecificUrl = (id) => {
 }
 
 .device-name {
-	font-weight: 700;
+	font-weight: var(--font-weight-bold);
 }
 
 .device-count {
-	color: #94a3b8;
+	color: var(--text-disabled);
 	font-size: 12px;
 	margin-left: 2px;
 }
@@ -954,24 +935,24 @@ const selectSpecificUrl = (id) => {
 .progress-bar {
 	height: 10px;
 	border-radius: 6px;
-	background: #cbd5e1;
+	background: var(--border-color);
 	transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .progress-bar.desktop {
-	background: linear-gradient(90deg, #2563eb, #60a5fa);
+	background: linear-gradient(90deg, var(--primary), #60a5fa);
 }
 .progress-bar.mobile {
-	background: linear-gradient(90deg, #10b981, #34d399);
+	background: linear-gradient(90deg, var(--success), #34d399);
 }
 .progress-bar.tablet {
-	background: linear-gradient(90deg, #f59e0b, #fbbf24);
+	background: linear-gradient(90deg, var(--warning), #fbbf24);
 }
 
 .percentage-label {
 	font-size: 13px;
-	font-weight: 800;
-	color: #1e293b;
+	font-weight: var(--font-weight-extrabold);
+	color: var(--text-main);
 	min-width: 36px;
 	text-align: right;
 }
@@ -979,10 +960,10 @@ const selectSpecificUrl = (id) => {
 /* Top performing links */
 .top-urls-section h3 {
 	font-size: 18px;
-	font-weight: 700;
-	color: #1e293b;
+	font-weight: var(--font-weight-bold);
+	color: var(--text-main);
 	margin-bottom: 20px;
-	border-bottom: 1px dashed rgba(66, 97, 237, 0.15);
+	border-bottom: 1px dashed rgba(37, 99, 235, 0.15);
 	padding-bottom: 12px;
 }
 
@@ -998,22 +979,22 @@ const selectSpecificUrl = (id) => {
 	background: rgba(248, 250, 252, 0.6);
 	padding: 16px 22px;
 	border-radius: 14px;
-	border: 1px solid rgba(226, 232, 240, 0.8);
+	border: 1px solid var(--border-color);
 	cursor: pointer;
 	transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .top-url-item:hover {
 	background: rgba(241, 245, 249, 0.9);
-	border-color: #cbd5e1;
+	border-color: var(--text-muted);
 	transform: translateY(-2px);
-	box-shadow: 0 8px 20px rgba(66, 97, 237, 0.04);
+	box-shadow: 0 8px 20px rgba(37, 99, 235, 0.04);
 }
 
 .url-rank {
-	font-weight: 900;
+	font-weight: var(--font-weight-extrabold);
 	font-size: 18px;
-	color: #4261ed;
+	color: var(--primary);
 	width: 44px;
 }
 
@@ -1026,14 +1007,14 @@ const selectSpecificUrl = (id) => {
 }
 
 .url-alias {
-	font-weight: 700;
+	font-weight: var(--font-weight-bold);
 	font-size: 15px;
-	color: #1e293b;
+	color: var(--text-main);
 }
 
 .url-orig {
 	font-size: 13px;
-	color: #94a3b8;
+	color: var(--text-disabled);
 	margin-top: 2px;
 }
 
@@ -1044,16 +1025,11 @@ const selectSpecificUrl = (id) => {
 
 .url-clicks-badge {
 	font-size: 13px;
-	font-weight: 700;
-	background: #ecfdf5;
-	color: #10b981;
+	font-weight: var(--font-weight-bold);
+	background: var(--success-light);
+	color: var(--success);
 	padding: 6px 12px;
 	border-radius: 8px;
-}
-
-.arrow-indicator {
-	margin-left: 10px;
-	opacity: 0.6;
 }
 
 /* Logs Table */
@@ -1073,12 +1049,12 @@ const selectSpecificUrl = (id) => {
 
 .logs-header h3 {
 	font-size: 18px;
-	font-weight: 700;
-	color: #1e293b;
+	font-weight: var(--font-weight-bold);
+	color: var(--text-main);
 }
 
 .logs-search input {
-	border: 2px solid #e2e8f0;
+	border: 2px solid var(--border-color);
 	border-radius: 10px;
 	padding: 10px 16px;
 	font-size: 14px;
@@ -1090,14 +1066,14 @@ const selectSpecificUrl = (id) => {
 }
 
 .logs-search input:focus {
-	border-color: #4261ed;
-	box-shadow: 0 0 0 3px rgba(66, 97, 237, 0.15);
+	border-color: var(--primary);
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .table-responsive {
 	overflow-x: auto;
 	border-radius: 12px;
-	border: 1px solid rgba(226, 232, 240, 0.8);
+	border: 1px solid var(--border-color);
 }
 
 .logs-table {
@@ -1109,9 +1085,9 @@ const selectSpecificUrl = (id) => {
 
 .logs-table th {
 	padding: 16px 20px;
-	border-bottom: 2px solid #e2e8f0;
-	color: #475569;
-	font-weight: 800;
+	border-bottom: 2px solid var(--border-color);
+	color: var(--secondary);
+	font-weight: var(--font-weight-extrabold);
 	text-transform: uppercase;
 	font-size: 12px;
 	background: rgba(248, 250, 252, 0.8);
@@ -1119,8 +1095,8 @@ const selectSpecificUrl = (id) => {
 
 .logs-table td {
 	padding: 16px 20px;
-	border-bottom: 1px solid #f1f5f9;
-	color: #334155;
+	border-bottom: 1px solid var(--border-color);
+	color: var(--text-main);
 	vertical-align: middle;
 }
 
@@ -1129,53 +1105,53 @@ const selectSpecificUrl = (id) => {
 }
 
 .col-code {
-	font-weight: 700;
+	font-weight: var(--font-weight-bold);
 }
 
 .code-badge {
 	cursor: pointer;
-	color: #4261ed;
-	background: #f0f4ff;
+	color: var(--primary);
+	background: var(--primary-light);
 	padding: 4px 8px;
 	border-radius: 8px;
 	font-size: 13px;
-	font-weight: 700;
+	font-weight: var(--font-weight-bold);
 	transition:
 		background-color 0.2s,
 		color 0.2s;
 }
 
 .code-badge:hover {
-	background: #4261ed;
+	background: var(--primary);
 	color: white;
 	text-decoration: none;
 }
 
 .badge-device {
 	font-size: 11px;
-	font-weight: 800;
+	font-weight: var(--font-weight-extrabold);
 	padding: 4px 8px;
 	border-radius: 6px;
 	text-transform: uppercase;
 }
 
 .badge-device.desktop {
-	background: #eff6ff;
-	color: #2563eb;
+	background: var(--primary-light);
+	color: var(--primary);
 }
 
 .badge-device.mobile {
-	background: #ecfdf5;
-	color: #10b981;
+	background: var(--success-light);
+	color: var(--success);
 }
 
 .badge-device.tablet {
-	background: #fffbeb;
-	color: #d97706;
+	background: var(--warning-light);
+	color: var(--warning);
 }
 
 .ua-text {
-	font-weight: 500;
+	font-weight: var(--font-weight-medium);
 }
 
 .referer-text {
@@ -1184,23 +1160,12 @@ const selectSpecificUrl = (id) => {
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	color: #475569;
-	font-size: 13px;
-}
-
-.owner-email {
-	max-width: 180px;
-	display: inline-block;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	color: #4b5563;
-	font-weight: 600;
+	color: var(--secondary);
 	font-size: 13px;
 }
 
 .col-date {
-	color: #94a3b8;
+	color: var(--text-disabled);
 	font-size: 13px;
 }
 
@@ -1208,7 +1173,7 @@ const selectSpecificUrl = (id) => {
 .logs-empty {
 	text-align: center;
 	padding: 50px;
-	color: #64748b;
+	color: var(--text-muted);
 	font-size: 14px;
 }
 
@@ -1221,39 +1186,9 @@ const selectSpecificUrl = (id) => {
 	padding-top: 10px;
 }
 
-.page-btn {
-	background: white;
-	border: 1px solid #cbd5e1;
-	padding: 8px 16px;
-	border-radius: 8px;
-	font-size: 13px;
-	font-weight: 600;
-	cursor: pointer;
-	color: #475569;
-	transition: all 0.2s;
-}
-
-.page-btn:disabled {
-	opacity: 0.5;
-	cursor: not-allowed;
-}
-
-.page-btn:not(:disabled):hover {
-	border-color: #4261ed;
-	color: #4261ed;
-	background: #f0f4ff;
-}
-
 .page-info {
 	font-size: 13px;
-	color: #64748b;
-}
-
-/* General utilities */
-.text-truncate {
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
+	color: var(--text-muted);
 }
 
 /* Mobile responsive adjustments */

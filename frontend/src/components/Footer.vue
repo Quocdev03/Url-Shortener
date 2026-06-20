@@ -15,6 +15,7 @@ import logo from "../assets/logo/icon-only.svg";
 
 			<div class="footer-links">
 				<router-link to="/">Trang chủ</router-link>
+				<router-link to="/about">Giới thiệu</router-link>
 				<router-link to="/shorten">Rút gọn link</router-link>
 				<a href="https://github.com/Quocdev03" target="_blank">
 					Github
@@ -27,9 +28,9 @@ import logo from "../assets/logo/icon-only.svg";
 .footer {
 	width: 100%;
 	background-color: rgba(255, 255, 255, 0.5);
-	backdrop-filter: blur(12px);
-	-webkit-backdrop-filter: blur(12px);
-	border-top: 1px solid rgba(226, 232, 240, 0.7);
+	backdrop-filter: var(--glass-blur);
+	-webkit-backdrop-filter: var(--glass-blur);
+	border-top: 1px solid var(--border-color);
 	padding: 16px 0;
 	position: fixed;
 	bottom: 0;
@@ -71,14 +72,14 @@ import logo from "../assets/logo/icon-only.svg";
 
 .footer-copyright {
 	font-size: 13.5px;
-	color: #64748b;
+	color: var(--text-muted);
 	margin: 0;
 	line-height: 1.4;
 }
 
 .footer-copyright span {
-	font-weight: 600;
-	background: linear-gradient(135deg, #00c0fa 0%, #4261ed 100%);
+	font-weight: var(--font-weight-semibold);
+	background: var(--primary-gradient);
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 	background-clip: text;
@@ -94,9 +95,9 @@ import logo from "../assets/logo/icon-only.svg";
 .footer-links a {
 	position: relative;
 	font-size: 14px;
-	color: #64748b;
+	color: var(--text-muted);
 	text-decoration: none;
-	font-weight: 500;
+	font-weight: var(--font-weight-medium);
 	transition: color 0.2s ease;
 }
 
@@ -108,11 +109,11 @@ import logo from "../assets/logo/icon-only.svg";
 	transform: translateY(-50%);
 	width: 1px;
 	height: 12px;
-	background-color: #cbd5e1;
+	background-color: var(--border-color);
 }
 
 .footer-links a:hover {
-	color: #4261ed;
+	color: var(--primary);
 }
 
 /* Responsive */

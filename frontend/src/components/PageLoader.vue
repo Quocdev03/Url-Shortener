@@ -1,6 +1,4 @@
 <script setup>
-import { Zap } from "@lucide/vue";
-
 defineProps({
 	active: {
 		type: Boolean,
@@ -21,9 +19,7 @@ defineProps({
 					<div class="spinner-outer"></div>
 					<div class="spinner-inner"></div>
 					<div class="spinner-center">
-						<span class="logo-icon">
-							<Zap :size="16" style="color:#4261ed;fill:#00c0fa;" />
-						</span>
+						<span class="logo-icon">⚡</span>
 					</div>
 				</div>
 				<p class="loader-text">{{ text }}</p>
@@ -40,8 +36,8 @@ defineProps({
 	width: 100vw;
 	height: 100vh;
 	background: rgba(250, 252, 254, 0.75);
-	backdrop-filter: blur(12px);
-	-webkit-backdrop-filter: blur(12px);
+	backdrop-filter: var(--glass-blur);
+	-webkit-backdrop-filter: var(--glass-blur);
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -69,11 +65,11 @@ defineProps({
 	width: 100%;
 	height: 100%;
 	border: 3px solid transparent;
-	border-top-color: #4261ed;
+	border-top-color: var(--primary);
 	border-bottom-color: #00c0fa;
 	border-radius: 50%;
 	animation: rotateClockwise 1.5s cubic-bezier(0.53, 0.21, 0.29, 0.82) infinite;
-	filter: drop-shadow(0 0 4px rgba(66, 97, 237, 0.4));
+	filter: drop-shadow(0 0 4px rgba(37, 99, 235, 0.4));
 	will-change: transform;
 }
 
@@ -82,7 +78,7 @@ defineProps({
 	width: 75%;
 	height: 75%;
 	border: 3px solid transparent;
-	border-left-color: #1a80e5;
+	border-left-color: var(--primary-hover);
 	border-right-color: #00b3fa;
 	border-radius: 50%;
 	animation: rotateCounterClockwise 1.2s cubic-bezier(0.53, 0.21, 0.29, 0.82) infinite;
@@ -95,7 +91,7 @@ defineProps({
 	height: 40%;
 	background: white;
 	border-radius: 50%;
-	box-shadow: 0 4px 15px rgba(66, 97, 237, 0.2);
+	box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -104,7 +100,7 @@ defineProps({
 
 .logo-icon {
 	font-size: 16px;
-	background: linear-gradient(135deg, #00c0fa, #4261ed);
+	background: var(--primary-gradient);
 	-webkit-background-clip: text;
 	background-clip: text;
 	-webkit-text-fill-color: transparent;
@@ -114,8 +110,8 @@ defineProps({
 .loader-text {
 	font-family: "Manrope", sans-serif;
 	font-size: 14px;
-	font-weight: 700;
-	color: #4261ed;
+	font-weight: var(--font-weight-bold);
+	color: var(--primary);
 	margin: 0;
 	text-transform: capitalize;
 	animation: fadePulse 1.5s ease-in-out infinite;
@@ -143,11 +139,11 @@ defineProps({
 @keyframes pulseCenter {
 	0%, 100% {
 		transform: scale(1);
-		box-shadow: 0 4px 10px rgba(66, 97, 237, 0.2);
+		box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
 	}
 	50% {
 		transform: scale(1.1);
-		box-shadow: 0 6px 20px rgba(66, 97, 237, 0.35);
+		box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
 	}
 }
 

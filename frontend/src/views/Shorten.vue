@@ -127,7 +127,7 @@ const shortenUrl = async () => {
 
 <template>
 	<main class="home-wrapper" :class="{ 'is-logged-in': isLoggedIn }">
-		<div class="home-main-card">
+		<div class="home-main-card glass-card">
 			<h1 class="home-title">Rút Gọn Liên Kết</h1>
 			<p class="home-subtitle">
 				Rút gọn liên kết dài của bạn chỉ trong một giây.
@@ -219,7 +219,7 @@ const shortenUrl = async () => {
 						>
 					</div>
 					<button
-						class="btn-copy-result"
+						class="btn btn-primary btn-sm btn-copy-result"
 						@click="copyToClipboard(lastShortenedUrl.short)"
 					>
 						Sao chép <Copy :size="13" style="display:inline-block;vertical-align:middle;margin-left:4px;" />
@@ -237,7 +237,7 @@ const shortenUrl = async () => {
 
 		<!-- Chỉ hiện lịch sử cục bộ cho Guest (khách chưa login), vì logged user đã có trang Profile -->
 		<div
-			class="home-history-panel"
+			class="home-history-panel glass-card"
 			v-if="!isLoggedIn && guestUrls.length > 0"
 		>
 			<div class="panel-header">
@@ -296,13 +296,12 @@ const shortenUrl = async () => {
 	display: flex;
 	flex-direction: column;
 	gap: 32px;
-	padding-top: 40px;
 }
 
 /* Styling for new recently shortened result box */
 .result-box-wrapper {
-	background: rgba(66, 97, 237, 0.05);
-	border: 1px solid rgba(66, 97, 237, 0.2);
+	background: var(--primary-light);
+	border: 1px solid rgba(37, 99, 235, 0.2);
 	border-radius: 12px;
 	padding: 16px;
 	margin-top: 20px;
@@ -319,15 +318,15 @@ const shortenUrl = async () => {
 
 .result-box-header h4 {
 	font-size: 14px;
-	font-weight: 700;
-	color: #1e293b;
+	font-weight: var(--font-weight-bold);
+	color: var(--text-main);
 	margin: 0;
 }
 
 .btn-close-result {
 	background: none;
 	border: none;
-	color: #94a3b8;
+	color: var(--text-disabled);
 	font-size: 16px;
 	cursor: pointer;
 	line-height: 1;
@@ -335,7 +334,7 @@ const shortenUrl = async () => {
 }
 
 .btn-close-result:hover {
-	color: #64748b;
+	color: var(--text-muted);
 }
 
 .result-box-body {
@@ -355,8 +354,8 @@ const shortenUrl = async () => {
 
 .result-short-url {
 	font-size: 16px;
-	font-weight: 700;
-	color: #2563eb;
+	font-weight: var(--font-weight-bold);
+	color: var(--primary);
 	text-decoration: none;
 	white-space: nowrap;
 	overflow: hidden;
@@ -369,34 +368,14 @@ const shortenUrl = async () => {
 
 .result-original-url {
 	font-size: 12px;
-	color: #94a3b8;
+	color: var(--text-disabled);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
 .btn-copy-result {
-	background: #2563eb;
-	color: white;
-	border: none;
-	padding: 8px 16px;
-	border-radius: 8px;
-	font-size: 13px;
-	font-weight: 700;
-	cursor: pointer;
-	transition:
-		background-color 0.2s,
-		transform 0.15s;
 	white-space: nowrap;
-}
-
-.btn-copy-result:hover {
-	background: #1d4ed8;
-	transform: translateY(-1px);
-}
-
-.btn-copy-result:active {
-	transform: translateY(0);
 }
 
 @keyframes fadeIn {
@@ -416,13 +395,6 @@ const shortenUrl = async () => {
 
 /* Card chính chứa form input */
 .home-main-card {
-	background: rgba(255, 255, 255, 0.75);
-	backdrop-filter: blur(12px);
-	-webkit-backdrop-filter: blur(12px);
-	padding: 32px;
-	border-radius: 20px;
-	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-	border: 1px solid rgba(255, 255, 255, 0.5);
 	width: 100%;
 	max-width: 800px;
 	margin: 0 auto;
@@ -430,15 +402,10 @@ const shortenUrl = async () => {
 
 .home-title {
 	display: block;
-	font-weight: 800;
-	font-size: 35px;
+	font-weight: var(--font-weight-extrabold);
+	font-size: var(--font-size-3xl);
 	line-height: 40px;
-	background-image: linear-gradient(
-		135deg,
-		#00b3fa 0%,
-		#1a80e5 50%,
-		#4261ed 100%
-	);
+	background: var(--primary-gradient);
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 	background-clip: text;
@@ -447,8 +414,8 @@ const shortenUrl = async () => {
 }
 
 .home-subtitle {
-	color: #64748b;
-	font-size: 14px;
+	color: var(--text-muted);
+	font-size: var(--font-size-sm);
 	margin-bottom: 24px;
 }
 
@@ -461,7 +428,7 @@ const shortenUrl = async () => {
 	display: flex;
 	position: relative;
 	background: #f8fafc;
-	border: 2px solid #e2e8f0;
+	border: 2px solid var(--border-color);
 	border-radius: 12px;
 	padding: 4px;
 	transition:
@@ -470,7 +437,7 @@ const shortenUrl = async () => {
 }
 
 .input-with-button:focus-within {
-	border-color: #2563eb;
+	border-color: var(--primary);
 	box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
 }
 
@@ -481,14 +448,14 @@ const shortenUrl = async () => {
 	padding: 12px 14px;
 	font-size: 15px;
 	outline: none;
-	color: #1e293b;
+	color: var(--text-main);
 	min-width: 0;
 }
 
 .home-example {
 	display: block;
 	font-size: 12px;
-	color: #94a3b8;
+	color: var(--text-disabled);
 	margin-top: 6px;
 	padding-left: 4px;
 }
@@ -500,8 +467,8 @@ const shortenUrl = async () => {
 	border-radius: 8px;
 	cursor: pointer;
 	font-size: 13px;
-	font-weight: 600;
-	color: #475569;
+	font-weight: var(--font-weight-semibold);
+	color: var(--secondary);
 	margin-top: 16px;
 
 	display: flex;
@@ -514,13 +481,13 @@ const shortenUrl = async () => {
 }
 
 .advanced-toggle:hover {
-	background: #e2e8f0;
+	background: var(--border-color);
 	transform: translateY(-1px);
 }
 
 .advanced-fields {
 	background: #f8fafc;
-	border: 2px solid #e2e8f0;
+	border: 2px solid var(--border-color);
 	border-radius: 12px;
 	padding: 20px;
 	margin-top: 15px;
@@ -537,54 +504,47 @@ const shortenUrl = async () => {
 
 .advanced-fields label {
 	font-size: 12px;
-	font-weight: 600;
-	color: #475569;
+	font-weight: var(--font-weight-semibold);
+	color: var(--secondary);
 }
 
 .advanced-fields input {
 	padding: 10px 12px;
-	border: 2px solid #e2e8f0;
+	border: 2px solid var(--border-color);
 	border-radius: 8px;
 	font-size: 14px;
 	outline: none;
 	background: white;
-	color: #334155;
+	color: var(--text-main);
 	font-family: inherit;
 	transition: all 0.2s ease;
 }
 
 .advanced-fields input:focus {
-	border-color: #2563eb;
+	border-color: var(--primary);
 	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .home-info {
 	font-size: 13px;
-	color: #475569;
+	color: var(--secondary);
 	margin-top: 16px;
 	padding: 12px;
-	background: #eff6ff;
-	border-left: 4px solid #2563eb;
+	background: var(--primary-light);
+	border-left: 4px solid var(--primary);
 	border-radius: 6px;
 	line-height: 1.5;
 }
 
 .home-info a {
-	color: #2563eb;
+	color: var(--primary);
 	text-decoration: none;
-	font-weight: 600;
+	font-weight: var(--font-weight-semibold);
 }
 
 /* Panel quản lý danh sách URL (Được tách rộng rãi) */
 .home-history-panel {
 	width: 100%;
-	background: rgba(255, 255, 255, 0.75);
-	backdrop-filter: blur(12px);
-	-webkit-backdrop-filter: blur(12px);
-	padding: 24px;
-	border-radius: 20px;
-	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-	border: 1px solid rgba(255, 255, 255, 0.5);
 	max-height: 500px;
 	display: flex;
 	flex-direction: column;
@@ -596,15 +556,15 @@ const shortenUrl = async () => {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	border-bottom: 1px solid #f1f5f9;
+	border-bottom: 1px solid var(--border-color);
 	padding-bottom: 14px;
 	margin-bottom: 14px;
 }
 
 .panel-header h2 {
 	font-size: 16px;
-	font-weight: 700;
-	color: #1e293b;
+	font-weight: var(--font-weight-bold);
+	color: var(--text-main);
 	margin: 0;
 }
 
@@ -614,7 +574,7 @@ const shortenUrl = async () => {
 	font-size: 12px;
 	padding: 4px 8px;
 	border-radius: 999px;
-	font-weight: 600;
+	font-weight: var(--font-weight-semibold);
 }
 
 .history-list {
@@ -636,7 +596,7 @@ const shortenUrl = async () => {
 	background: #f8fafc;
 	padding: 12px 16px;
 	border-radius: 12px;
-	border: 1px solid #e2e8f0;
+	border: 1px solid var(--border-color);
 	gap: 16px;
 }
 
@@ -654,16 +614,16 @@ const shortenUrl = async () => {
 
 .original-url {
 	font-size: 12px;
-	color: #94a3b8;
+	color: var(--text-disabled);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
 .short-url {
-	font-weight: 600;
+	font-weight: var(--font-weight-semibold);
 	font-size: 14px;
-	color: #2563eb;
+	color: var(--primary);
 	text-decoration: none;
 	white-space: nowrap;
 	overflow: hidden;
@@ -682,7 +642,7 @@ const shortenUrl = async () => {
 
 .action-btn {
 	background: white;
-	border: 1px solid #e2e8f0;
+	border: 1px solid var(--border-color);
 	padding: 6px 10px;
 	border-radius: 8px;
 	cursor: pointer;
@@ -695,13 +655,13 @@ const shortenUrl = async () => {
 }
 
 .action-btn.copy:hover {
-	background: #ecfdf5;
-	border-color: #10b981;
+	background: var(--success-light);
+	border-color: var(--success);
 }
 
 .action-btn.delete:hover {
-	background: #fef2f2;
-	border-color: #ef4444;
+	background: var(--danger-light);
+	border-color: var(--danger);
 }
 
 /* Advanced panel animation */
