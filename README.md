@@ -12,25 +12,34 @@ Full-stack URL shortening application với xác thực JWT, phân quyền, Redi
 
 ## 📸 Hình ảnh giao diện
 
-| Đăng Nhập | Đăng Ký |
-| :--- | :--- |
-| ![Login](reviews/login.png) | ![Register](reviews/register.png) |
+### Trang Chủ
+<img src="reviews/screencapture-localhost-5174-2026-06-21-19_21_46.png" alt="Home" width="800">
 
-| Rút gọn liên kết (Khách) | Rút gọn liên kết (Thành viên) |
-| :--- | :--- |
-| ![Public URL](reviews/url_public.png) | ![Authenticated URL](reviews/url_auth.png) |
+### Giới Thiệu
+<img src="reviews/screencapture-localhost-5174-about-2026-06-21-19_21_55.png" alt="About" width="800">
 
-| Kho Link Cá Nhân | Báo Lỗi Hết Hạn |
-| :--- | :--- |
-| ![Profile](reviews/profile.png) | ![Expired URL](reviews/urlexpired.png) |
+### Đăng Nhập (Login) & Đăng Ký (Register)
+<img src="reviews/screencapture-localhost-5174-login-2026-06-21-19_28_12.png" alt="Login" width="800">
+<br>
+<img src="reviews/screencapture-localhost-5174-register-2026-06-21-19_28_15.png" alt="Register" width="800">
 
-| Thống Kê Phân Tích |
-| :--- |
-| ![Analytics](reviews/analytics.png) |
+### Quản trị (Admin)
+<img src="reviews/screencapture-localhost-5174-admin-2026-06-21-19_22_12.png" alt="Admin 1" width="800">
+<br>
+<img src="reviews/screencapture-localhost-5174-admin-2026-06-21-19_22_16.png" alt="Admin 2" width="800">
 
-| Quản trị Người dùng | Quản trị URL |
-| :--- | :--- |
-| ![Admin Users](reviews/administration_user.png) | ![Admin URLs](reviews/administration_url.png) |
+### Thống Kê Phân Tích (Analytics)
+<img src="reviews/screencapture-localhost-5174-analytics-2026-06-21-19_22_07.png" alt="Analytics" width="800">
+
+### Hồ Sơ Cá Nhân (Profile)
+<img src="reviews/screencapture-localhost-5174-profile-2026-06-21-19_22_22.png" alt="Profile 1" width="800">
+<br>
+<img src="reviews/screencapture-localhost-5174-profile-2026-06-21-19_22_26.png" alt="Profile 2" width="800">
+
+### Rút Gọn Liên Kết (Shorten URL)
+<img src="reviews/screencapture-localhost-5174-shorten-2026-06-21-19_22_03.png" alt="Shorten 1" width="800">
+<br>
+<img src="reviews/screencapture-localhost-5174-shorten-2026-06-21-19_22_37.png" alt="Shorten 2" width="800">
 
 ---
 
