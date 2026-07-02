@@ -27,7 +27,7 @@ async function retryDbConnection(maxRetries = 10, delayMs = 500) {
 			// Exponential backoff: 500ms, 1s, 2s, 4s...
 			const wait = delayMs * Math.pow(2, attempt - 1);
 			logger.warn(
-				`DB connection attempt ${attempt}/${maxRetries} failed, retrying in ${wait}ms...`,
+				`DB connection attempt ${attempt}/${maxRetries} failed, retrying in ${wait}ms... Error: ${err.message}`,
 			);
 			await new Promise((resolve) => setTimeout(resolve, wait));
 		}
